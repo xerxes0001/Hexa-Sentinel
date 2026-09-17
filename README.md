@@ -1,261 +1,306 @@
-# Privacy-First, On-Device Security Intelligence for Snapdragon® AI PCs
+<p align="center">
+  <h1 align="center">🛡️ HexaSentinel</h1>
+</p>
 
- \<p align="center"\> \<strong\>Detect locally. Correlate intelligently. Explain privately.\</strong\> \</p\> \<p align="center"\> \<img src="https://img.shields.io/badge/status-research%20%2F%20competition%20prototype-7C3AED?style=for-the-badge" alt="Project Status"\> \<img src="https://img.shields.io/badge/platform-Windows%20ARM64-0078D4?style=for-the-badge&logo=windows" alt="Platform"\> \<img src="https://img.shields.io/badge/architecture-on--device%20AI-16A34A?style=for-the-badge" alt="Architecture"\> \<img src="https://img.shields.io/badge/NPU-Snapdragon-FF6B00?style=for-the-badge" alt="Snapdragon NPU"\> \<img src="https://img.shields.io/badge/privacy-local--first-16A34A?style=for-the-badge" alt="Privacy"\> \<img src="https://img.shields.io/badge/license-MIT-111827?style=for-the-badge" alt="License"\> \</p\> \<p align="center"\> \<a href="#-project-status"\>Status\</a\> • \<a href="#-overview"\>Overview\</a\> • \<a href="#-architecture"\>Architecture\</a\> • \<a href="#-features"\>Features\</a\> • \<a href="#-quick-start"\>Quick Start\</a\> • \<a href="#-competition-demo"\>Demo\</a\> • \<a href="#-validation"\>Validation\</a\> • \<a href="#-roadmap"\>Roadmap\</a\> \</p\>
+<p align="center">
+  <strong>Privacy-First, On-Device Security Intelligence for Snapdragon® AI PCs</strong>
+</p>
+
+<p align="center">
+  <strong>Detect locally. Correlate intelligently. Explain privately.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/status-research%20%2F%20competition%20prototype-7C3AED?style=for-the-badge" alt="Project status">
+  <img src="https://img.shields.io/badge/platform-Windows%20ARM64-0078D4?style=for-the-badge&logo=windows" alt="Windows ARM64">
+  <img src="https://img.shields.io/badge/architecture-on--device%20AI-16A34A?style=for-the-badge" alt="On-device AI">
+  <img src="https://img.shields.io/badge/NPU-Snapdragon-FF6B00?style=for-the-badge" alt="Snapdragon NPU">
+  <img src="https://img.shields.io/badge/privacy-local--first-16A34A?style=for-the-badge" alt="Privacy">
+  <img src="https://img.shields.io/badge/license-MIT-111827?style=for-the-badge" alt="License">
+</p>
+
+<p align="center">
+  <a href="#-project-status">Status</a> •
+  <a href="#-overview">Overview</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-features">Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-competition-demo">Demo</a> •
+  <a href="#-validation">Validation</a> •
+  <a href="#-roadmap">Roadmap</a>
+</p>
+
 ---
 
- ## 🚦 Project Status
+## 📌 Project Status
 
- > **Research / Competition Prototype**
+> **This is a research / competition prototype**, built for a Qualcomm Snapdragon AI PC challenge. Model choices, performance numbers, and runtime paths below are **targets to validate**, not measured results — see [Validation](#-validation) and the [caveat](#-a-note-on-honesty) at the bottom before citing any figure publicly.
 
- This project explores privacy-first security intelligence running directly on **Windows ARM64 PCs powered by Snapdragon® platforms**.
-
- The system is designed around a local-first architecture where security telemetry is collected, correlated, analyzed, and explained on-device whenever possible.
-
----
-
- ## 🔍 Overview
-
- **Privacy-First, On-Device Security Intelligence** is an experimental security platform designed to detect suspicious activity locally, correlate security signals intelligently, and provide understandable explanations without unnecessarily sending sensitive telemetry to the cloud.
-
- The core idea is simple:
-
- > **Detect locally. Correlate intelligently. Explain privately.**
-
- By combining endpoint telemetry, local correlation, and on-device AI acceleration, the project aims to demonstrate how modern AI PCs can perform useful security analysis while keeping sensitive information on the device.
+| Component | Status |
+|---|---|
+| Architecture & pipeline design | ✅ Defined |
+| Event collection (network / process / system) | 🔲 Not yet implemented |
+| Behavioral anomaly model | 🔲 Not yet implemented |
+| Event correlation engine | 🔲 Not yet implemented |
+| On-device LLM investigation layer | 🔲 Not yet implemented |
+| NPU-accelerated inference (Hexagon) | 🔲 Not yet validated |
+| Dashboard / UI | 🔲 Not yet implemented |
+| Benchmarks (precision/recall/latency/power) | 🔲 Not yet measured |
 
 ---
 
- ## 🏗️ Architecture
+## 🧭 Overview
 
- The system follows a **local-first, privacy-preserving architecture**:
+Modern security tooling drowns analysts in disconnected signals: network flows, DNS lookups, process spawns, authentication events. The hard problem was never *detecting an event* — it's figuring out **which events belong together and what they mean**.
+
+**HexaSentinel** turns a Snapdragon-powered HP AI PC into a small, continuously running security analyst that:
+
+1. Collects **privacy-preserving, local-only** behavioral signals (metadata, not payloads)
+2. Flags abnormal behavior with a lightweight, always-on AI model
+3. Correlates related anomalies into a single **incident**
+4. Hands that incident — not raw telemetry — to an **on-device generative model** for a human-readable explanation
 
 ```
-┌───────────────────────────────────────────────┐
-│              Windows ARM64 PC                 │
-│                                               │
-│  ┌───────────────┐    ┌───────────────────┐  │
-│  │ Endpoint      │    │ Security          │  │
-│  │ Telemetry     │───▶│ Event Pipeline    │  │
-│  │ Collection    │    │                   │  │
-│  └───────────────┘    └─────────┬─────────┘  │
-│                                  │            │
-│                                  ▼            │
-│                       ┌───────────────────┐  │
-│                       │ Local Correlation │  │
-│                       │ & Detection       │  │
-│                       └─────────┬─────────┘  │
-│                                 │            │
-│                                 ▼            │
-│                       ┌───────────────────┐  │
-│                       │ On-Device AI      │  │
-│                       │ Analysis          │  │
-│                       │                   │  │
-│                       │ CPU / GPU / NPU   │  │
-│                       └─────────┬─────────┘  │
-│                                 │            │
-│                                 ▼            │
-│                       ┌───────────────────┐  │
-│                       │ Explainable       │  │
-│                       │ Security Insights │  │
-│                       └───────────────────┘  │
-│                                               │
-│        Sensitive telemetry remains local      │
-└───────────────────────────────────────────────┘
+Suspicious activity
+        ↓
+Local signal collection  →  Anomaly detection  →  Correlation  →  On-device explanation
+        ↓                                                              ↓
+   No cloud upload                                          Human-readable incident report
 ```
 
- ### Core Principles
-
- - **Local-first:** Process sensitive security telemetry on the device.
-- **Privacy-preserving:** Minimize unnecessary transmission of raw telemetry.
-- **AI-assisted:** Use on-device AI capabilities for analysis and explanation.
-- **Explainable:** Convert detections into understandable security insights.
-- **Efficient:** Take advantage of Snapdragon® AI PC hardware acceleration.
-- **Modular:** Keep telemetry, detection, correlation, AI, and presentation layers separated.
+The core bet: **privacy is an architectural property here, not a UI claim.** Raw security telemetry never has to leave the device, and the generative model only ever sees a small, structured evidence package — never a live packet stream.
 
 ---
 
- ## ✨ Features
+## 🏗️ Architecture
 
- ### 🔐 Privacy-First Detection
+### Why Snapdragon
 
- Security events can be processed locally without requiring raw endpoint telemetry to be continuously uploaded to a remote service.
+A Snapdragon X-series SoC exposes three distinct compute resources, and HexaSentinel is designed to route work to the one best suited for it:
 
- ### 🧠 Intelligent Correlation
+```
+                 Snapdragon SoC
+                       │
+        ┌──────────────┼──────────────┐
+        ↓              ↓              ↓
+       CPU            GPU            NPU
+        │              │              │
+  Collection,      Dashboard      AI inference
+  orchestration,   rendering &    (behavioral model +
+  DB, API           graphs        on-device LLM)
+```
 
- Individual security events can be correlated into higher-level activity patterns rather than treating every event independently.
+| Compute | Workload |
+|---|---|
+| **CPU** | Event collection, feature extraction, app logic, database ops, API/UI |
+| **Hexagon NPU** | Behavioral classification, quantized inference, on-device generative inference (model/runtime TBD — see [Validation](#-validation)) |
+| **GPU** | Incident graphs, network visualizations, dashboard rendering |
 
- ### ⚡ On-Device AI
+The pitch isn't *"runs on Snapdragon"* — it's **the pipeline is designed around heterogeneous Snapdragon compute, with AI workloads specifically targeted at the Hexagon NPU.**
 
- The architecture is designed to take advantage of local CPU, GPU, and NPU capabilities for AI-assisted security analysis.
+### End-to-end pipeline
 
- ### 💡 Explainable Security Insights
+```
+             DATA SOURCES
+                  │
+       ┌──────────┼──────────┐
+       ↓          ↓          ↓
+    Network    Processes    System
+       │          │          │
+       └──────────┼──────────┘
+                  ↓
+          Privacy Sanitizer
+                  ↓
+          Feature Extraction
+                  ↓
+       Behavioral AI Model
+                  ↓
+          Anomaly Detection
+                  ↓
+         Event Correlation
+                  ↓
+          Incident Creation
+                  ↓
+        Evidence Construction
+                  ↓
+        On-device AI Analyst
+                  ↓
+          Explanation + Risk
+                  ↓
+           Local Dashboard
+```
 
- Instead of presenting only raw alerts, the system aims to explain:
+#### 1. Collection
 
- - What happened
-- Why the activity may be suspicious
-- Which events contributed to the detection
-- What systems or processes were involved
-- What additional investigation may be useful
+Only metadata and behavioral signals — never full packet payloads.
 
- ### 🖥️ Windows ARM64
+- **Network:** timestamp, protocol, src/dst, port, flow counts, connection duration, bytes transferred, DNS behavior, connection frequency
+- **Process:** name, PID, parent process, start time, lifetime, network-activity relationship, resource behavior
+- **System:** new-process events, adapter changes, application events, auth events, config changes
 
- The prototype targets Windows on ARM64 systems, with a focus on Snapdragon® AI PCs.
+#### 2. Privacy sanitization
 
- ### 🌐 Local-First Architecture
+Real hostnames and identifiers are hashed/pseudonymized locally *before* anything reaches the AI layer. The model gets enough signal to reason about behavior without seeing private content — it doesn't need to know what a user typed to notice an unusual connection pattern.
 
- The system is designed so that network connectivity is not inherently required for every detection and analysis operation.
+#### 3. Feature extraction
+
+Raw events are converted into numerical behavioral features, e.g.:
+
+```
+connection_count       = 37
+unique_destinations    = 14
+mean_connection_duration = 0.83
+dns_request_rate       = 12.4
+destination_entropy    = 0.71
+connection_burstiness  = 0.82
+process_network_ratio  = 0.43
+```
+
+The exact feature set should be determined **experimentally**, not copied wholesale from prior work.
+
+#### 4. Behavioral AI (small, always-on)
+
+A lightweight model — small enough to run continuously on the NPU — scores each window of activity:
+
+```
+Behavioral Model
+     │
+ ┌───┼───┐
+ ↓   ↓   ↓
+Normal Anomalous High-risk
+0.91   0.06      0.03
+```
+
+#### 5. Why not run the LLM on every event?
+
+Because it's wasteful and the wrong tool for the job:
+
+```
+10,000 events → small behavioral model → 37 suspicious events
+             → correlation → 2 incidents → LLM investigation
+```
+
+The generative model is the **investigator**, not the packet filter.
+
+#### 6. Event correlation
+
+Independent anomalies (a process spawn, a new DNS destination, a connection burst) are linked into an incident graph rather than reported as isolated alerts — closer to how a human analyst actually thinks.
+
+#### 7. Evidence construction
+
+A structured object is built for the LLM — never a raw event stream:
+
+```json
+{
+  "incident_id": "INC-1042",
+  "risk": 0.89,
+  "process_events": 3,
+  "network_events": 7,
+  "dns_events": 2,
+  "behavioral_anomalies": 4,
+  "timeline": ["...", "...", "..."]
+}
+```
+
+#### 8. On-device AI investigation
+
+The generative model consumes that evidence package and produces a structured explanation: severity, observed behavior, supporting evidence, and recommended next steps. It is explicitly **not** the original detector — it's the explanation layer, invoked only when an incident already exists.
 
 ---
 
- ## 🚀 Quick Start
+## ✨ Features
 
- ### Requirements
-
- - Windows 11 on ARM64
-- Snapdragon®-based AI PC
-- Python / required runtime dependencies
-- Project dependencies listed in `requirements.txt`
-
- ### Installation
-
-```
-git clone <YOUR_REPOSITORY_URL>
-cd <YOUR_PROJECT_DIRECTORY>
-
-python -m venv .venv
-.venv\Scripts\activate
-
-pip install -r requirements.txt
-```
-
- ### Run
-
-```
-python main.py
-```
-
- > **Note:** Replace the commands above with the project's actual installation and execution commands once the implementation is finalized.
+- **Local-first by design** — no requirement to send security telemetry to a cloud service for analysis
+- **Two-tier AI** — a cheap always-on behavioral model filters noise; a larger generative model only runs on the handful of events that become incidents
+- **Incident correlation, not alert spam** — related anomalies are graphed into a single incident rather than surfaced as disconnected alerts
+- **Human-readable explanations** — incidents come with a plain-language summary and recommended investigation steps, not just a risk score
+- **Heterogeneous compute story** — CPU for orchestration, NPU for inference, GPU for visualization
+- **Chronological incident timeline** and a **security graph view** for demo/judging clarity
 
 ---
 
- ## 🎬 Competition Demo
+## 🚀 Quick Start
 
- The competition demonstration focuses on showing the complete local security intelligence pipeline:
+> ⚠️ The pipeline above is the design target. Implementation is in progress — this section will be filled in as components land (setup, dependencies, ARM64 build steps, model download/conversion instructions).
 
-```
-Security Event
-      │
-      ▼
-Local Collection
-      │
-      ▼
-Event Normalization
-      │
-      ▼
-Correlation
-      │
-      ▼
-Detection
-      │
-      ▼
-On-Device AI Analysis
-      │
-      ▼
-Human-Readable Explanation
+```bash
+# placeholder — to be completed once the collection/inference pipeline is implemented
+git clone <repo-url>
+cd hexasentinel
 ```
 
- ### Suggested Demo Scenario
+---
 
- 1. Generate a representative security event.
-2. Capture the event locally.
-3. Correlate it with related endpoint activity.
-4. Identify the resulting behavioral pattern.
-5. Run AI-assisted analysis locally.
-6. Display an explanation of the detected activity.
-7. Demonstrate that sensitive telemetry remains on-device.
+## 🎥 Competition Demo
+
+**Demo storyline:** a suspicious application is executed → makes an unusual DNS request → opens repeated outbound connections → the behavioral model flags each step → the correlation engine links them into one incident → the on-device model explains it in plain language — all without a single byte of security telemetry leaving the machine.
+
+Dashboard concept:
+
+```
+╔══════════════════════════════════════════════════════╗
+║                 HEXASENTINEL                          ║
+║         ON-DEVICE SECURITY COPILOT                    ║
+╠══════════════════════════════════════════════════════╣
+║   SYSTEM STATUS             AI ENGINE                 ║
+║   ● PROTECTED               ● ONLINE                  ║
+║   Network      Normal        NPU      Active          ║
+║   Processes    Normal        Model    Ready            ║
+║   Incidents    1             Cloud    OFF              ║
+╠══════════════════════════════════════════════════════╣
+║                 INCIDENT TIMELINE                      ║
+║  14:31  Process anomaly                                ║
+║  14:31  DNS anomaly                                    ║
+║  14:31  Network anomaly                                ║
+║  14:31  INCIDENT CREATED                                ║
+╠══════════════════════════════════════════════════════╣
+║                 AI INVESTIGATION                       ║
+║  HIGH RISK                                              ║
+║  Unusual relationship between a process and             ║
+║  outbound network activity.                             ║
+║  [VIEW EVIDENCE]       [RESPONSE OPTIONS]               ║
+╚══════════════════════════════════════════════════════╝
+```
+
+**What this demonstrates to judges:** the story isn't *"we called an LLM from a security app."* It's *"we built a local security intelligence pipeline specifically designed around what a Snapdragon AI PC can do."*
 
 ---
 
- ## 🧪 Validation
+## 🧪 Validation
 
- Validation should measure both **security effectiveness** and **privacy/performance characteristics**.
+No numbers in this document should be treated as measured. Before finalizing implementation, the project needs to:
 
- ### Detection
+1. **Confirm the runtime path** — the exact Qualcomm AI Hub model(s), Windows ARM64 runtime, NPU execution provider, and supported operators, checked against current Qualcomm documentation (not assumed from prior projects).
+2. **Establish every performance number experimentally**, rather than reusing figures from other proposals. That includes:
+   - **AI quality:** precision, recall, F1, false-positive rate, detection rate
+   - **NPU performance:** inference latency, throughput, NPU/CPU utilization, memory footprint
+   - **System performance:** event processing rate, dashboard latency, startup time, battery/power impact
+   - **Privacy claim:** measured count of external network connections initiated by HexaSentinel itself (target: 0 application-telemetry destinations), clearly separated from normal OS/network traffic
 
- - Detection accuracy
-- False-positive rate
-- False-negative rate
-- Detection latency
-- Correlation quality
-
- ### On-Device Performance
-
- - CPU utilization
-- GPU utilization
-- NPU utilization
-- Memory consumption
-- Power consumption
-- End-to-end processing latency
-
- ### Privacy
-
- - Amount of telemetry leaving the device
-- Raw-event retention
-- Network dependencies
-- Local processing coverage
-
- ### Explainability
-
- - Quality of generated explanations
-- Relevance of supporting events
-- Traceability from explanation to detection evidence
-- Human readability
+A dashboard that says "100% private" is a claim. A benchmark showing zero outbound telemetry connections during a monitored session is evidence — the latter is what should ship.
 
 ---
 
- ## 🗺️ Roadmap
+## 🗺️ Roadmap
 
- ### Phase 1 — Prototype
-
- - [ ] Windows ARM64 telemetry collection
-- [ ] Local event normalization
-- [ ] Basic security detections
-- [ ] Event correlation
-- [ ] Local dashboard
-- [ ] Initial on-device AI integration
-
- ### Phase 2 — Intelligence
-
- - [ ] Behavioral correlation
-- [ ] Advanced anomaly detection
-- [ ] AI-assisted investigation
-- [ ] Explainable detection results
-- [ ] Improved NPU utilization
-
- ### Phase 3 — Privacy & Performance
-
- - [ ] Reduce telemetry footprint
-- [ ] Optimize memory usage
-- [ ] Improve inference latency
-- [ ] Benchmark CPU/GPU/NPU execution
-- [ ] Offline operation improvements
-
- ### Phase 4 — Production Research
-
- - [ ] Expanded detection coverage
-- [ ] Robust evaluation dataset
-- [ ] Security hardening
-- [ ] Reproducible benchmarks
-- [ ] Documentation and deployment tooling
+- [ ] Implement local event collectors (network / process / system)
+- [ ] Build and validate the privacy sanitization layer
+- [ ] Finalize feature set via experimentation
+- [ ] Train/select the behavioral anomaly model; benchmark on NPU vs CPU
+- [ ] Implement correlation engine and incident graph construction
+- [ ] Select and validate the on-device generative model + Qualcomm runtime path
+- [ ] Build the dashboard (timeline + security graph)
+- [ ] Run full benchmark suite (AI quality, NPU perf, system perf, privacy)
+- [ ] Prepare competition demo scenario and recording
 
 ---
 
- ## 📜 License
+## 📎 A Note on Honesty
 
- This project is released under the **MIT License**.
+This README intentionally avoids restating unverified performance claims (e.g. specific latency or power numbers) from earlier drafts or prior projects. Every number that ends up in the final submission should come from this project's own benchmark runs.
 
 ---
 
- \<p align="center"\> \<strong\>Privacy-first security intelligence, running where your data lives.\</strong\> \</p\>
-
+<p align="center">
+  <sub>Built for a Qualcomm Snapdragon AI PC challenge · Local detection, local reasoning, local explanation.</sub>
+</p>
