@@ -295,9 +295,7 @@ A dashboard that says "100% private" is a claim. A benchmark showing zero outbou
 
 ---
 
-## 📎 A Note on Honesty
 
-This README intentionally avoids restating unverified performance claims (e.g. specific latency or power numbers) from earlier drafts or prior projects. Every number that ends up in the final submission should come from this project's own benchmark runs.
 
 ---
 
