@@ -295,7 +295,20 @@ A dashboard that says "100% private" is a claim. A benchmark showing zero outbou
 
 ---
 
+## 👥 Candidate Information
 
+| | |
+|---|---|
+| **Name** | Indraneel Kiran Rananaware |
+| **Institution** | Department of Computer Engineering (B.Tech), Sinhgad Institute of Technology, Lonavala, Savitribai Phule Pune University |
+| **Contact** | [indraneeelrananaware4190@gmail.com](mailto:indraneeelrananaware4190@gmail.com) |
+| **Competition** | Qualcomm Snapdragon AI Lab Build & Present Challenge 2026 |
+
+---
+
+## 📎 A Note on Honesty
+
+This README intentionally avoids restating unverified performance claims (e.g. specific latency or power numbers) from earlier drafts or prior projects. Every number that ends up in the final submission should come from this project's own benchmark runs.
 
 ---
 
