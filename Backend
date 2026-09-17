@@ -1,0 +1,340 @@
+"""
+SnapShield Stage 1: ONNX Anomaly Classifier
+
+Runs an ONNX anomaly-classification model using:
+- Qualcomm QNN Execution Provider + Hexagon HTP/NPU when available
+- CPUExecutionProvider as a fallback
+- Built-in behavioral heuristics when the ONNX model is unavailable
+
+Input:
+    80-feature NumPy vector
+
+Output:
+    (label, confidence, inference_ms)
+
+Labels:
+    NORMAL
+    SUSPICIOUS
+    THREAT
+"""
+
+import os
+import time
+import numpy as np
+
+
+class AnomalyDetector:
+    LABEL_MAP = {
+        0: "NORMAL",
+        1: "SUSPICIOUS",
+        2: "THREAT",
+    }
+
+    def __init__(self, model_path=None):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        self.model_path = model_path or os.path.join(
+            base_dir,
+            "..",
+            "models",
+            "anomaly_classifier.onnx",
+        )
+
+        self.session = None
+        self.execution_provider = "CPUExecutionProvider (Fallback)"
+
+        self._init_session()
+
+    def _init_session(self):
+        """Initialize ONNX Runtime with QNN/Hexagon when available."""
+
+        try:
+            import onnxruntime as ort
+
+            available_providers = ort.get_available_providers()
+
+            print(
+                "[AnomalyDetector] Available ONNX providers:",
+                available_providers,
+            )
+
+            providers = []
+
+            # Prefer Qualcomm QNN / Hexagon HTP
+            if "QNNExecutionProvider" in available_providers:
+                qnn_options = {
+                    "backend_path": "QnnHtp.dll",
+                    "htp_performance_mode": "burst",
+                    "htp_arch": "73",
+                }
+
+                providers.append(
+                    (
+                        "QNNExecutionProvider",
+                        qnn_options,
+                    )
+                )
+
+                # CPU fallback if QNN cannot execute an operator
+                if "CPUExecutionProvider" in available_providers:
+                    providers.append("CPUExecutionProvider")
+
+                self.execution_provider = (
+                    "QNNExecutionProvider (Hexagon NPU)"
+                )
+
+            elif "CPUExecutionProvider" in available_providers:
+                providers.append("CPUExecutionProvider")
+                self.execution_provider = "CPUExecutionProvider (Fallback)"
+
+            else:
+                raise RuntimeError(
+                    "No supported ONNX Runtime execution provider found."
+                )
+
+            # Check model
+            if not os.path.isfile(self.model_path):
+                print(
+                    "[AnomalyDetector] Model not found:",
+                    self.model_path,
+                )
+                print(
+                    "[AnomalyDetector] Using heuristic fallback."
+                )
+                return
+
+            if os.path.getsize(self.model_path) <= 100:
+                print(
+                    "[AnomalyDetector] Model file is invalid or empty."
+                )
+                print(
+                    "[AnomalyDetector] Using heuristic fallback."
+                )
+                return
+
+            # Create ONNX Runtime session
+            self.session = ort.InferenceSession(
+                self.model_path,
+                providers=providers,
+            )
+
+            print(
+                "[AnomalyDetector] ONNX session initialized using:",
+                self.execution_provider,
+            )
+
+        except ImportError:
+            print(
+                "[AnomalyDetector] onnxruntime is not installed."
+            )
+            print(
+                "[AnomalyDetector] Using heuristic fallback."
+            )
+
+        except Exception as exc:
+            print(
+                f"[AnomalyDetector] ONNX Runtime initialization failed: "
+                f"{exc}"
+            )
+            print(
+                "[AnomalyDetector] Using heuristic fallback."
+            )
+
+            self.session = None
+
+    def _validate_features(self, feature_vector):
+        """Validate and normalize the input feature vector."""
+
+        features = np.asarray(feature_vector, dtype=np.float32)
+
+        if features.size != 80:
+            raise ValueError(
+                f"Expected 80 features, got {features.size}"
+            )
+
+        # Convert to shape (1, 80)
+        return features.reshape(1, 80)
+
+    def _classify_onnx(self, feature_vector):
+        """Run inference through ONNX Runtime."""
+
+        input_tensor = self._validate_features(feature_vector)
+
+        input_name = self.session.get_inputs()[0].name
+
+        outputs = self.session.run(
+            None,
+            {
+                input_name: input_tensor,
+            },
+        )
+
+        if not outputs:
+            raise RuntimeError(
+                "ONNX model returned no outputs."
+            )
+
+        # Common model format:
+        # outputs[0] -> predicted class
+        # outputs[1] -> probability vector
+        pred_class = int(np.asarray(outputs[0]).flatten()[0])
+
+        probability = 0.92
+
+        if len(outputs) > 1:
+            probabilities = np.asarray(outputs[1]).flatten()
+
+            if 0 <= pred_class < len(probabilities):
+                probability = float(probabilities[pred_class])
+
+        label = self.LABEL_MAP.get(
+            pred_class,
+            "NORMAL",
+        )
+
+        probability = float(
+            np.clip(probability, 0.0, 1.0)
+        )
+
+        return label, probability
+
+    def _classify_heuristic(self, metrics):
+        """
+        Behavioral fallback evaluator.
+
+        Metrics expected:
+            port_entropy
+            syn_ack_ratio
+            zero_payload_ratio
+            packets_per_sec
+        """
+
+        if not metrics:
+            return "NORMAL", 0.98
+
+        port_entropy = float(
+            metrics.get("port_entropy", 0.0)
+        )
+
+        syn_ack_ratio = float(
+            metrics.get("syn_ack_ratio", 1.0)
+        )
+
+        zero_payload_ratio = float(
+            metrics.get("zero_payload_ratio", 0.0)
+        )
+
+        packets_per_sec = float(
+            metrics.get("packets_per_sec", 0.0)
+        )
+
+        # -----------------------------------------
+        # Rule 1: Port scanning
+        # -----------------------------------------
+        if (
+            port_entropy > 3.2
+            and zero_payload_ratio > 0.6
+        ):
+            return "THREAT", 0.94
+
+        # -----------------------------------------
+        # Rule 2: SYN flood / SYN asymmetry
+        # -----------------------------------------
+        if (
+            syn_ack_ratio > 4.0
+            and packets_per_sec > 100
+        ):
+            return "THREAT", 0.96
+
+        # -----------------------------------------
+        # Rule 3: Suspicious beacon-like traffic
+        # -----------------------------------------
+        if zero_payload_ratio > 0.75:
+            return "SUSPICIOUS", 0.86
+
+        return "NORMAL", 0.98
+
+    def classify(self, feature_vector, metrics=None):
+        """
+        Classify an 80-feature traffic window.
+
+        Args:
+            feature_vector:
+                NumPy array or array-like object containing
+                exactly 80 features.
+
+            metrics:
+                Optional dictionary containing behavioral
+                traffic metrics used by the fallback evaluator.
+
+        Returns:
+            tuple:
+                (
+                    label,
+                    confidence,
+                    inference_ms
+                )
+
+        Example:
+            (
+                "THREAT",
+                0.96,
+                2.83
+            )
+        """
+
+        start = time.perf_counter()
+
+        # -----------------------------------------
+        # Try ONNX model
+        # -----------------------------------------
+        if self.session is not None:
+            try:
+                label, confidence = self._classify_onnx(
+                    feature_vector
+                )
+
+                elapsed_ms = (
+                    time.perf_counter() - start
+                ) * 1000.0
+
+                return (
+                    label,
+                    round(confidence, 4),
+                    round(elapsed_ms, 2),
+                )
+
+            except Exception as exc:
+                print(
+                    f"[AnomalyDetector] Inference error: {exc}"
+                )
+                print(
+                    "[AnomalyDetector] Falling back to heuristic evaluator."
+                )
+
+        # -----------------------------------------
+        # Heuristic fallback
+        # -----------------------------------------
+        label, confidence = self._classify_heuristic(
+            metrics
+        )
+
+        elapsed_ms = (
+            time.perf_counter() - start
+        ) * 1000.0
+
+        return (
+            label,
+            round(confidence, 4),
+            round(elapsed_ms, 2),
+        )
+
+    def get_execution_provider(self):
+        """Return the currently selected execution provider."""
+
+        return self.execution_provider
+
+    def is_model_loaded(self):
+        """Return True if the ONNX model is loaded."""
+
+        return self.session is not None
