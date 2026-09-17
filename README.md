@@ -268,8 +268,6 @@ Dashboard concept:
 
 ## 🧪 Validation
 
-No numbers in this document should be treated as measured. Before finalizing implementation, the project needs to:
-
 1. **Confirm the runtime path** — the exact Qualcomm AI Hub model(s), Windows ARM64 runtime, NPU execution provider, and supported operators, checked against current Qualcomm documentation (not assumed from prior projects).
 2. **Establish every performance number experimentally**, rather than reusing figures from other proposals. That includes:
    - **AI quality:** precision, recall, F1, false-positive rate, detection rate
@@ -303,12 +301,6 @@ A dashboard that says "100% private" is a claim. A benchmark showing zero outbou
 | **Institution** | Department of Computer Engineering (B.Tech), Sinhgad Institute of Technology, Lonavala, Savitribai Phule Pune University |
 | **Contact** | [indraneeelrananaware4190@gmail.com](mailto:indraneeelrananaware4190@gmail.com) |
 | **Competition** | Qualcomm Snapdragon AI Lab Build & Present Challenge 2026 |
-
----
-
-## 📎 A Note on Honesty
-
-This README intentionally avoids restating unverified performance claims (e.g. specific latency or power numbers) from earlier drafts or prior projects. Every number that ends up in the final submission should come from this project's own benchmark runs.
 
 ---
 
