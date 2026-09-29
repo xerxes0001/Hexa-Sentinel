@@ -1,0 +1,167 @@
+<svg viewBox="0 0 1100 480" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="gCyan" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0CD4F5" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#0CD4F5" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="gPurple" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.06"/>
+    </linearGradient>
+    <linearGradient id="gRed" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F43F5E" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#F43F5E" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="gGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0.05"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#0CD4F5" opacity="0.7"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="480" fill="#07101E" rx="12"/>
+
+  <!-- Title -->
+  <text x="550" y="36" text-anchor="middle" font-size="17" font-weight="700" fill="#EAF2FF" letter-spacing="-0.5">HexaSentinel — End-to-End Silicon-Native Dataflow</text>
+  <text x="550" y="55" text-anchor="middle" font-size="10" fill="#4F6A88" letter-spacing="0.5">QUALCOMM SNAPDRAGON AI LAB CHALLENGE 2026</text>
+
+  <!-- ── COLUMN 1: INGESTION LAYER ── -->
+  <rect x="20" y="75" width="195" height="310" rx="10" fill="url(#gCyan)" stroke="#0CD4F5" stroke-width="1.2"/>
+  <rect x="20" y="75" width="195" height="30" rx="10" fill="#0CD4F5" opacity="0.18"/>
+  <text x="117" y="95" text-anchor="middle" font-size="9" font-weight="700" fill="#0CD4F5" letter-spacing="1">INGESTION LAYER</text>
+  <text x="117" y="108" text-anchor="middle" font-size="8" fill="#4F6A88">Network Adapters</text>
+
+  <text x="117" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#EAF2FF">Stage 1</text>
+  <text x="117" y="156" text-anchor="middle" font-size="10" font-weight="700" fill="#0CD4F5">Passive Ingestion</text>
+  <text x="117" y="172" text-anchor="middle" font-size="8.5" fill="#8BA8C8">Scapy / WinPcap Hook</text>
+  <text x="40" y="198" font-size="8" fill="#6A8BAA">• Rolling 30s in-memory ring</text>
+  <text x="40" y="212" font-size="8" fill="#6A8BAA">• Strips payload immediately</text>
+  <text x="40" y="226" font-size="8" fill="#6A8BAA">• Zero disk persistence</text>
+  <text x="40" y="240" font-size="8" fill="#6A8BAA">• Raw 802.11 / 802.3 capture</text>
+  <rect x="35" y="265" width="145" height="36" rx="6" fill="rgba(12,212,245,0.08)" stroke="#0CD4F5" stroke-width="0.8" opacity="0.7"/>
+  <text x="107" y="279" text-anchor="middle" font-size="8" fill="#0CD4F5" font-weight="600">Wi-Fi 7 / 6E</text>
+  <text x="107" y="291" text-anchor="middle" font-size="7.5" fill="#6A8BAA">Gigabit Ethernet</text>
+  <rect x="35" y="308" width="145" height="28" rx="6" fill="rgba(12,212,245,0.06)" stroke="#0CD4F5" stroke-width="0.8" opacity="0.6"/>
+  <text x="107" y="323" text-anchor="middle" font-size="7.5" fill="#8BA8C8">Host NIC / CPU — HARDWARE</text>
+  <text x="107" y="335" text-anchor="middle" font-size="7" fill="#4F6A88">LATENCY: ZERO (ring buffer)</text>
+
+  <!-- arrow 1→2 -->
+  <line x1="215" y1="230" x2="240" y2="230" stroke="#0CD4F5" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+  <!-- ── COLUMN 2: HOST BACKEND ── -->
+  <rect x="240" y="75" width="195" height="310" rx="10" fill="url(#gPurple)" stroke="#8B5CF6" stroke-width="1.2"/>
+  <rect x="240" y="75" width="195" height="30" rx="10" fill="#8B5CF6" opacity="0.18"/>
+  <text x="337" y="95" text-anchor="middle" font-size="9" font-weight="700" fill="#A78BFA" letter-spacing="1">HOST BACKEND</text>
+  <text x="337" y="108" text-anchor="middle" font-size="8" fill="#4F6A88">Python 3.11+ / FastAPI</text>
+
+  <text x="337" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#EAF2FF">Stage 2</text>
+  <text x="337" y="156" text-anchor="middle" font-size="10" font-weight="700" fill="#A78BFA">Feature Extraction</text>
+  <text x="337" y="172" text-anchor="middle" font-size="8.5" fill="#8BA8C8">80-Feature Vector Engine</text>
+  <text x="258" y="198" font-size="8" fill="#6A8BAA">• Shannon port entropy index</text>
+  <text x="258" y="212" font-size="8" fill="#6A8BAA">• Inter-arrival packet jitter</text>
+  <text x="258" y="226" font-size="8" fill="#6A8BAA">• SYN/ACK ratio asymmetry</text>
+  <text x="258" y="240" font-size="8" fill="#6A8BAA">• Flow byte distribution stats</text>
+  <rect x="258" y="265" width="145" height="28" rx="6" fill="rgba(139,92,246,0.08)" stroke="#8B5CF6" stroke-width="0.8"/>
+  <text x="330" y="280" text-anchor="middle" font-size="8" fill="#A78BFA" font-weight="600">Localhost WebSocket</text>
+  <text x="330" y="292" text-anchor="middle" font-size="7.5" fill="#6A8BAA">127.0.0.1:8000 event bridge</text>
+  <rect x="258" y="300" width="145" height="28" rx="6" fill="rgba(139,92,246,0.06)" stroke="#8B5CF6" stroke-width="0.8" opacity="0.7"/>
+  <text x="330" y="315" text-anchor="middle" font-size="8" fill="#8BA8C8" font-weight="500">LATENCY: ~12ms (CPU)</text>
+  <text x="330" y="327" text-anchor="middle" font-size="7" fill="#4F6A88">numpy + pandas feature pipeline</text>
+
+  <!-- arrow 2→3 -->
+  <line x1="435" y1="230" x2="460" y2="230" stroke="#0CD4F5" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+  <!-- ── COLUMN 3: HEXAGON NPU ── -->
+  <rect x="460" y="75" width="215" height="310" rx="10" fill="url(#gRed)" stroke="#F43F5E" stroke-width="1.5" filter="url(#glow)"/>
+  <rect x="460" y="75" width="215" height="30" rx="10" fill="#F43F5E" opacity="0.22"/>
+  <text x="567" y="93" text-anchor="middle" font-size="9" font-weight="700" fill="#F43F5E" letter-spacing="1">QUALCOMM HEXAGON NPU</text>
+  <text x="567" y="106" text-anchor="middle" font-size="8" fill="#F87171">45 TOPS Dedicated Silicon</text>
+
+  <!-- Stage 3 -->
+  <rect x="475" y="120" width="185" height="90" rx="8" fill="rgba(244,63,94,0.08)" stroke="#F43F5E" stroke-width="1"/>
+  <text x="567" y="137" text-anchor="middle" font-size="11" font-weight="600" fill="#EAF2FF">Stage 3</text>
+  <text x="567" y="153" text-anchor="middle" font-size="10" font-weight="700" fill="#F43F5E">ONNX GBDT Classifier</text>
+  <text x="567" y="168" text-anchor="middle" font-size="8" fill="#8BA8C8">QNN EP (QnnHtp.dll, burst mode)</text>
+  <text x="567" y="182" text-anchor="middle" font-size="8" fill="#6A8BAA">Score S ∈ [0.0, 1.0] · Threshold 0.85</text>
+  <text x="567" y="196" text-anchor="middle" font-size="7.5" fill="#F43F5E" font-weight="600">LATENCY: &lt; 3ms · Power: ~1W</text>
+
+  <!-- Branching -->
+  <rect x="475" y="222" width="185" height="40" rx="6" fill="rgba(16,185,129,0.08)" stroke="#10B981" stroke-width="0.8"/>
+  <text x="567" y="238" text-anchor="middle" font-size="8" fill="#34D399" font-weight="600">S &lt; 0.85 → Normal Branch</text>
+  <text x="567" y="252" text-anchor="middle" font-size="7.5" fill="#6A8BAA">Buffer purged · 0% CPU/NPU waste</text>
+  <rect x="475" y="268" width="185" height="40" rx="6" fill="rgba(244,63,94,0.08)" stroke="#F43F5E" stroke-width="0.8"/>
+  <text x="567" y="284" text-anchor="middle" font-size="8" fill="#F43F5E" font-weight="600">S ≥ 0.85 → Threat Branch</text>
+  <text x="567" y="298" text-anchor="middle" font-size="7.5" fill="#6A8BAA">Structured JSON → LLM queue</text>
+
+  <!-- Stage 4 -->
+  <rect x="475" y="316" width="185" height="52" rx="8" fill="rgba(139,92,246,0.1)" stroke="#8B5CF6" stroke-width="1"/>
+  <text x="567" y="331" text-anchor="middle" font-size="11" font-weight="600" fill="#EAF2FF">Stage 4</text>
+  <text x="567" y="346" text-anchor="middle" font-size="10" font-weight="700" fill="#A78BFA">Llama 3.2 3B Instruct</text>
+  <text x="567" y="360" text-anchor="middle" font-size="7.5" fill="#A78BFA">Qualcomm AI Hub · INT4 QNN · 8-12s</text>
+
+  <!-- arrow 3→4 -->
+  <line x1="675" y1="230" x2="700" y2="230" stroke="#0CD4F5" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+
+  <!-- ── COLUMN 4: SOC DASHBOARD ── -->
+  <rect x="700" y="75" width="195" height="310" rx="10" fill="url(#gGreen)" stroke="#10B981" stroke-width="1.2"/>
+  <rect x="700" y="75" width="195" height="30" rx="10" fill="#10B981" opacity="0.18"/>
+  <text x="797" y="95" text-anchor="middle" font-size="9" font-weight="700" fill="#34D399" letter-spacing="1">SOC DASHBOARD</text>
+  <text x="797" y="108" text-anchor="middle" font-size="8" fill="#4F6A88">React 18 + Vite + D3.js</text>
+
+  <text x="797" y="140" text-anchor="middle" font-size="11" font-weight="600" fill="#EAF2FF">Stage 5</text>
+  <text x="797" y="156" text-anchor="middle" font-size="10" font-weight="700" fill="#34D399">SOC Triage &amp; Export</text>
+  <text x="797" y="172" text-anchor="middle" font-size="8.5" fill="#8BA8C8">React 18 + D3.js + PDF</text>
+
+  <text x="718" y="198" font-size="8" fill="#6A8BAA">• Live Threat Feed (real-time cards)</text>
+  <text x="718" y="212" font-size="8" fill="#6A8BAA">• D3 Network Graph (topology)</text>
+  <text x="718" y="226" font-size="8" fill="#6A8BAA">• Severity Meter (NPU score)</text>
+  <text x="718" y="240" font-size="8" fill="#6A8BAA">• One-click CERT-In PDF export</text>
+  <text x="718" y="254" font-size="8" fill="#6A8BAA">• Voice Query (Whisper NPU)</text>
+
+  <rect x="718" y="273" width="145" height="28" rx="6" fill="rgba(16,185,129,0.08)" stroke="#10B981" stroke-width="0.8"/>
+  <text x="790" y="288" text-anchor="middle" font-size="8" fill="#34D399" font-weight="600">DELIVERY: &lt; 50ms local</text>
+  <text x="790" y="300" text-anchor="middle" font-size="7.5" fill="#6A8BAA">Localhost WebSocket push</text>
+
+  <rect x="718" y="308" width="145" height="50" rx="6" fill="rgba(16,185,129,0.06)" stroke="#10B981" stroke-width="0.8" opacity="0.7"/>
+  <text x="790" y="322" text-anchor="middle" font-size="8" fill="#8BA8C8" font-weight="600">NPU Status Badge</text>
+  <text x="790" y="334" text-anchor="middle" font-size="7" fill="#4F6A88">QNN LIVE / CPU / SIMULATION</text>
+  <text x="790" y="348" text-anchor="middle" font-size="7" fill="#4F6A88">Polls /api/health every 10s</text>
+
+  <!-- ── BOTTOM BAR: Data isolation ── -->
+  <rect x="20" y="400" width="875" height="55" rx="8" fill="rgba(244,63,94,0.06)" stroke="#F43F5E" stroke-width="1"/>
+  <text x="457" y="418" text-anchor="middle" font-size="9" font-weight="700" fill="#F43F5E" letter-spacing="0.5">STRICT DATA ISOLATION &amp; CORE SYSTEM GUARANTEES</text>
+  <text x="457" y="433" text-anchor="middle" font-size="8" fill="#8BA8C8">Process Boundary: UI → localhost (127.0.0.1) only · Zero outbound cloud telemetry · Silicon Boundary: Models run exclusively in Hexagon NPU memory</text>
+  <text x="457" y="447" text-anchor="middle" font-size="8" fill="#8BA8C8">Privacy-by-Design: Raw payload discarded at Stage 1 ingestion · DPDP Act 2023 compliant · Energy: 0.015 Wh/incident</text>
+
+  <!-- ── STATS ROW ── -->
+  <rect x="910" y="75" width="170" height="310" rx="10" fill="rgba(12,212,245,0.04)" stroke="rgba(12,212,245,0.15)" stroke-width="1"/>
+  <text x="995" y="96" text-anchor="middle" font-size="8" font-weight="700" fill="#0CD4F5" letter-spacing="1">BENCHMARKS</text>
+  <text x="995" y="110" text-anchor="middle" font-size="7.5" fill="#4F6A88">vs cloud pipelines</text>
+
+  <!-- Stats -->
+  <text x="995" y="148" text-anchor="middle" font-size="26" font-weight="800" fill="#0CD4F5">45</text>
+  <text x="995" y="163" text-anchor="middle" font-size="8" fill="#0CD4F5" font-weight="600">TOPS</text>
+  <text x="995" y="176" text-anchor="middle" font-size="7" fill="#4F6A88">Hexagon NPU</text>
+
+  <line x1="925" y1="185" x2="1065" y2="185" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+  <text x="995" y="212" text-anchor="middle" font-size="26" font-weight="800" fill="#F43F5E">&lt;3</text>
+  <text x="995" y="227" text-anchor="middle" font-size="8" fill="#F43F5E" font-weight="600">ms</text>
+  <text x="995" y="240" text-anchor="middle" font-size="7" fill="#4F6A88">ONNX inference</text>
+
+  <line x1="925" y1="250" x2="1065" y2="250" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+  <text x="995" y="276" text-anchor="middle" font-size="26" font-weight="800" fill="#10B981">0</text>
+  <text x="995" y="291" text-anchor="middle" font-size="8" fill="#10B981" font-weight="600">BYTES</text>
+  <text x="995" y="304" text-anchor="middle" font-size="7" fill="#4F6A88">cloud egress</text>
+
+  <line x1="925" y1="314" x2="1065" y2="314" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+  <text x="995" y="340" text-anchor="middle" font-size="22" font-weight="800" fill="#F59E0B">3–5W</text>
+  <text x="995" y="355" text-anchor="middle" font-size="7.5" fill="#F59E0B" font-weight="600">POWER</text>
+  <text x="995" y="368" text-anchor="middle" font-size="7" fill="#4F6A88">vs 15-20W CPU</text>
+</svg>

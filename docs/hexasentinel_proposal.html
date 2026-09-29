@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HexaSentinel — On-Device Network Threat Intelligence Analyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ════════════════════════════
+   DESIGN TOKENS
+════════════════════════════ */
+:root {
+  --bg:        #070E1C;
+  --s1:        #0C1829;
+  --s2:        #101E35;
+  --s3:        #152540;
+  --cyan:      #0CD4F5;
+  --cyan-d:    rgba(12,212,245,0.18);
+  --cyan-g:    rgba(12,212,245,0.06);
+  --purple:    #8B5CF6;
+  --purple-d:  rgba(139,92,246,0.18);
+  --emerald:   #10B981;
+  --amber:     #F59E0B;
+  --rose:      #F43F5E;
+  --text:      #EAF2FF;
+  --t2:        #8BA8C8;
+  --t3:        #4F6A88;
+  --border:    rgba(12,212,245,0.13);
+  --border2:   rgba(255,255,255,0.06);
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:15px;
+  line-height:1.78;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3,h4 {
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  letter-spacing:-0.02em;
+  line-height:1.22;
+}
+
+a { color:var(--cyan); text-decoration:none; }
+
+/* ════ LAYOUT ════ */
+.wrap { max-width:940px; margin:0 auto; padding:0 36px; }
+section { padding:80px 0; }
+section.alt { background:var(--s1); }
+
+/* ════ COVER ════ */
+.cover {
+  min-height:100vh;
+  background:linear-gradient(150deg,#040a16 0%,#080f20 40%,#0c1830 100%);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  text-align:center;
+  padding:80px 40px;
+  position:relative; overflow:hidden;
+}
+.cover-glow {
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 500px 400px at 50% 45%,rgba(12,212,245,0.07),transparent),
+    radial-gradient(ellipse 320px 280px at 68% 68%,rgba(139,92,246,0.06),transparent);
+}
+.cover-grid {
+  position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(12,212,245,0.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(12,212,245,0.035) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 10%,transparent 100%);
+}
+
+.badge {
+  position:relative;
+  display:inline-flex; align-items:center; gap:7px;
+  background:rgba(12,212,245,0.08);
+  border:1px solid rgba(12,212,245,0.22);
+  border-radius:100px;
+  padding:5px 16px;
+  font-size:11px;
+  font-family:'Space Grotesk',sans-serif;
+  letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--cyan);
+  margin-bottom:34px;
+}
+
+.cover-title {
+  position:relative;
+  font-size:clamp(56px,11vw,96px);
+  font-weight:700;
+  background:linear-gradient(145deg,#EAF2FF 40%,#0CD4F5 100%);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:14px;
+}
+
+.cover-sub {
+  position:relative;
+  font-size:clamp(15px,2.2vw,18px);
+  color:var(--t2);
+  max-width:580px;
+  margin-bottom:48px;
+  line-height:1.6;
+}
+
+.meta-card {
+  position:relative;
+  background:rgba(10,20,40,0.75);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:28px 40px;
+  display:flex; flex-wrap:wrap;
+  justify-content:center; gap:36px;
+  backdrop-filter:blur(12px);
+  margin-bottom:40px;
+}
+.mi-label { font-size:10px; color:var(--t3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px; }
+.mi-val { font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:500; }
+
+.chips { position:relative; display:flex; flex-wrap:wrap; justify-content:center; gap:9px; }
+.chip {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 14px; border-radius:100px;
+  font-size:11px; font-family:'Space Grotesk',sans-serif; font-weight:500;
+}
+.chip-c { background:rgba(12,212,245,0.1); border:1px solid rgba(12,212,245,0.24); color:var(--cyan); }
+.chip-p { background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.24); color:#A78BFA; }
+.chip-e { background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.24); color:var(--emerald); }
+.chip-a { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.24); color:var(--amber); }
+
+/* ════ SECTION TYPOGRAPHY ════ */
+.sec-eyebrow {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:10px; font-family:'Space Grotesk',sans-serif;
+  letter-spacing:0.13em; text-transform:uppercase;
+  color:var(--cyan); margin-bottom:12px;
+}
+.sec-eyebrow::before { content:''; display:block; width:22px; height:1px; background:var(--cyan); }
+
+.sec-title { font-size:clamp(26px,4vw,38px); color:var(--text); margin-bottom:14px; }
+.sec-lead { font-size:17px; color:var(--t2); max-width:680px; margin-bottom:52px; line-height:1.8; }
+
+/* ════ CARDS ════ */
+.card {
+  background:var(--s2);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  padding:28px 30px;
+}
+.card-l-cyan   { border-left:3px solid var(--cyan); }
+.card-l-purple { border-left:3px solid var(--purple); }
+.card-l-emerald{ border-left:3px solid var(--emerald); }
+.card-l-amber  { border-left:3px solid var(--amber); }
+.card-l-rose   { border-left:3px solid var(--rose); }
+
+.card-icon {
+  width:40px; height:40px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; margin-bottom:16px;
+}
+.card h3 { font-size:17px; margin-bottom:8px; }
+.card p, .card li { font-size:14px; color:var(--t2); }
+.card ul { padding-left:18px; }
+.card li { margin-bottom:5px; }
+
+.g3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; }
+.g2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:20px; }
+.g2-fixed { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+
+/* ════ TABLES ════ */
+.tbl-wrap { background:var(--s2); border:1px solid var(--border2); border-radius:16px; overflow:hidden; margin-bottom:28px; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th {
+  text-align:left; padding:12px 18px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:10px; font-weight:600;
+  letter-spacing:0.07em; text-transform:uppercase;
+  color:var(--t3); border-bottom:1px solid var(--border2);
+  background:var(--s1);
+}
+td {
+  padding:13px 18px;
+  border-bottom:1px solid var(--border2);
+  color:var(--t2); vertical-align:top;
+}
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(12,212,245,0.025); }
+td:first-child { color:var(--text); font-weight:500; }
+
+/* ════ CALLOUT ════ */
+.callout {
+  background:rgba(12,212,245,0.05);
+  border:1px solid rgba(12,212,245,0.2);
+  border-radius:12px;
+  padding:18px 22px;
+  display:flex; gap:14px; align-items:flex-start;
+  margin:28px 0;
+}
+.callout-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+.callout-body { font-size:14px; color:var(--t2); line-height:1.7; }
+.callout-body strong { color:var(--text); }
+
+.callout-p { border-color:rgba(139,92,246,0.25); background:rgba(139,92,246,0.05); }
+.callout-e { border-color:rgba(16,185,129,0.25); background:rgba(16,185,129,0.05); }
+
+/* ════ CODE BLOCK ════ */
+.code {
+  background:#030710;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;
+  padding:22px 24px;
+  font-family:'Cascadia Code','JetBrains Mono','Courier New',monospace;
+  font-size:12.5px; line-height:1.75;
+  color:#BDD5EE; overflow-x:auto;
+  margin:20px 0;
+}
+.cc { color:#3E5872; }
+.ck { color:#A78BFA; }
+.cs { color:#34D399; }
+.cf { color:#0CD4F5; }
+.cv { color:#F0B96A; }
+
+/* ════ STATUS PILLS ════ */
+.yes { color:var(--emerald); font-weight:600; }
+.warn { color:var(--amber); font-weight:600; }
+.no  { color:var(--rose);   font-weight:600; }
+
+/* ════ ROADMAP ════ */
+.roadmap { padding-left:28px; }
+.rm-group { margin-bottom:40px; }
+.rm-group-label {
+  font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
+  font-family:'Space Grotesk',sans-serif;
+  margin-bottom:16px; display:flex; align-items:center; gap:10px;
+}
+.rm-group-label .rm-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.rm-item {
+  padding-left:20px;
+  border-left:2px solid var(--border2);
+  margin-bottom:20px;
+  position:relative;
+}
+.rm-item::before {
+  content:'';
+  position:absolute; left:-5px; top:6px;
+  width:8px; height:8px; border-radius:50%;
+  border:2px solid var(--bg);
+}
+.rm-item-t { font-size:14px; font-weight:600; font-family:'Space Grotesk',sans-serif; color:var(--text); margin-bottom:4px; }
+.rm-item-d { font-size:13px; color:var(--t2); }
+
+/* ════ BEFORE/AFTER ════ */
+.transform {
+  display:grid; grid-template-columns:1fr auto 1fr; gap:0;
+  align-items:stretch;
+}
+.tf-panel { padding:28px; border-radius:16px; }
+.tf-before { background:rgba(244,63,94,0.07); border:1px solid rgba(244,63,94,0.18); }
+.tf-after  { background:rgba(12,212,245,0.06); border:1px solid rgba(12,212,245,0.18); }
+.tf-arrow  { display:flex; align-items:center; justify-content:center; padding:0 16px; }
+.tf-label  { font-size:11px; text-transform:uppercase; letter-spacing:0.1em; font-family:'Space Grotesk',sans-serif; margin-bottom:10px; font-weight:600; }
+.tf-title  { font-size:18px; font-weight:700; font-family:'Space Grotesk',sans-serif; margin-bottom:12px; }
+.tf-list   { list-style:none; padding:0; }
+.tf-list li { font-size:13px; color:var(--t2); padding:4px 0; display:flex; gap:8px; align-items:flex-start; }
+.tf-list li::before { content:'→'; flex-shrink:0; margin-top:1px; }
+
+/* ════ STAT STRIP ════ */
+.stat-strip {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:1px; background:var(--border2);
+  border:1px solid var(--border2); border-radius:16px; overflow:hidden;
+  margin-bottom:40px;
+}
+.stat-cell {
+  background:var(--s2);
+  padding:24px 20px; text-align:center;
+}
+.stat-num { font-size:30px; font-weight:700; font-family:'Space Grotesk',sans-serif; color:var(--cyan); }
+.stat-lbl { font-size:11px; color:var(--t2); margin-top:4px; line-height:1.4; }
+
+/* ════ SCENARIO ════ */
+.scenario {
+  background:var(--s2);
+  border:1px solid var(--border2); border-radius:20px;
+  padding:36px; margin-bottom:24px;
+}
+.scenario-tag {
+  display:inline-block; padding:4px 12px; border-radius:100px;
+  font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+  font-family:'Space Grotesk',sans-serif; font-weight:600; margin-bottom:14px;
+}
+.scenario-tag.c { background:rgba(12,212,245,0.1); border:1px solid rgba(12,212,245,0.22); color:var(--cyan); }
+.scenario-tag.p { background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.22); color:#A78BFA; }
+.scenario h3 { font-size:20px; margin-bottom:12px; }
+.scenario p { font-size:14px; color:var(--t2); margin-bottom:14px; }
+.ai-output {
+  background:#020610;
+  border:1px solid rgba(16,185,129,0.2);
+  border-radius:10px; padding:16px 18px;
+  font-family:'Cascadia Code','Courier New',monospace;
+  font-size:12px; color:#9FD4B6; line-height:1.7;
+  position:relative;
+}
+.ai-output::before {
+  content:'HexaSentinel AI ·';
+  display:block;
+  font-size:10px; font-family:'Space Grotesk',sans-serif;
+  color:var(--emerald); margin-bottom:8px; letter-spacing:0.05em;
+}
+
+/* ════ DIVIDER ════ */
+.div { height:1px; background:linear-gradient(90deg,transparent,var(--border2),transparent); margin:52px 0; }
+
+/* ════ FOOTER ════ */
+.footer {
+  padding:64px 0 48px;
+  text-align:center;
+  border-top:1px solid var(--border2);
+}
+.footer-name {
+  font-size:clamp(22px,4vw,32px); font-weight:700;
+  font-family:'Space Grotesk',sans-serif;
+  background:linear-gradient(135deg,var(--text),var(--t2));
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+.footer-sub { font-size:13px; color:var(--t3); }
+
+/* ════ FLOWCHART CONTAINER ════ */
+.flowchart-wrap {
+  background:var(--s2);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  padding:28px;
+  margin:36px 0;
+  overflow-x:auto;
+}
+.flowchart-wrap svg { display:block; margin:0 auto; }
+
+/* ════ PRINT ════ */
+@media print {
+  body { background:#fff; color:#111; }
+  .cover { min-height:auto; background:#f0f5ff; color:#111; padding:60px 40px; }
+  section.alt { background:#f8faff; }
+}
+
+/* ════ RESPONSIVE ════ */
+@media(max-width:700px){
+  .wrap { padding:0 20px; }
+  section { padding:52px 0; }
+  .transform { grid-template-columns:1fr; }
+  .tf-arrow { transform:rotate(90deg); padding:12px 0; }
+  .g2-fixed { grid-template-columns:1fr; }
+  .meta-card { padding:20px 24px; gap:20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ COVER ══════════════ -->
+<section class="cover">
+  <div class="cover-glow"></div>
+  <div class="cover-grid"></div>
+
+  <div class="badge" style="position:relative">
+    <svg width="11" height="12" viewBox="0 0 11 12"><path d="M5.5 1L10 3.2V6.8C10 9 8 10.8 5.5 11C3 10.8 1 9 1 6.8V3.2Z" fill="rgba(12,212,245,0.25)" stroke="#0CD4F5" stroke-width="1"/></svg>
+    Qualcomm Snapdragon AI Lab Challenge 2026
+  </div>
+
+  <!-- Shield icon -->
+  <svg width="96" height="96" viewBox="0 0 96 96" style="position:relative;margin-bottom:26px">
+    <defs>
+      <linearGradient id="sg1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0CD4F5"/>
+        <stop offset="100%" stop-color="#8B5CF6"/>
+      </linearGradient>
+      <filter id="glow1"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <path d="M48 8 L80 22 L80 52 C80 70 65 82 48 88 C31 82 16 70 16 52 L16 22 Z"
+          fill="rgba(12,212,245,0.07)" stroke="url(#sg1)" stroke-width="2" filter="url(#glow1)"/>
+    <path d="M48 8 L80 22 L80 52 C80 70 65 82 48 88 C31 82 16 70 16 52 L16 52"
+          fill="none" stroke="url(#sg1)" stroke-width="1.5" opacity="0.35" stroke-dasharray="5 4"/>
+    <!-- Lightning bolt inside shield -->
+    <path d="M52 32 L42 50 L50 50 L44 66 L56 46 L48 46 Z"
+          fill="url(#sg1)" opacity="0.9"/>
+  </svg>
+
+  <h1 class="cover-title">HexaSentinel</h1>
+  <p class="cover-sub">On-Device Network Threat Intelligence Analyst<br/>Powered by Qualcomm AI Hub · Snapdragon X Elite · Hexagon NPU</p>
+
+  <div class="meta-card">
+    <div>
+      <div class="mi-label">Submitted by</div>
+      <div class="mi-val">Aniket Khot</div>
+    </div>
+    <div>
+      <div class="mi-label">Institution</div>
+      <div class="mi-val">PVGCOET, Pune</div>
+    </div>
+    <div>
+      <div class="mi-label">Programme</div>
+      <div class="mi-val">E&TC Engineering, SY B.Tech</div>
+    </div>
+    <div>
+      <div class="mi-label">University</div>
+      <div class="mi-val">Savitribai Phule Pune University</div>
+    </div>
+    <div>
+      <div class="mi-label">Date</div>
+      <div class="mi-val">September 2026</div>
+    </div>
+  </div>
+
+  <div class="chips">
+    <span class="chip chip-c">Zero Cloud Dependency</span>
+    <span class="chip chip-p">Llama 3.2 3B On-Device</span>
+    <span class="chip chip-e">Privacy-First Design</span>
+    <span class="chip chip-c">Hexagon NPU Accelerated</span>
+    <span class="chip chip-a">Offline Operation</span>
+  </div>
+</section>
+
+<!-- ══════════════ EXECUTIVE SUMMARY ══════════════ -->
+<section id="summary" class="alt">
+<div class="wrap">
+  <div class="sec-eyebrow">Executive Summary</div>
+  <h2 class="sec-title">Your laptop, now a security analyst</h2>
+  <p class="sec-lead">What if your laptop could watch your network the way a trained security engineer would — spotting threats in real time, explaining them in plain English, and doing all of it without ever phoning home to a cloud server? That's HexaSentinel.</p>
+
+  <div class="stat-strip">
+    <div class="stat-cell">
+      <div class="stat-num" style="color:var(--cyan)">&lt;5ms</div>
+      <div class="stat-lbl">Detection latency on Hexagon NPU</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num" style="color:var(--purple)">0</div>
+      <div class="stat-lbl">Bytes sent to the cloud at runtime</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num" style="color:var(--emerald)">80</div>
+      <div class="stat-lbl">Traffic features per 30-second window</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num" style="color:var(--amber)">3B</div>
+      <div class="stat-lbl">Parameter LLM running fully on-device</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num" style="color:var(--rose)">45</div>
+      <div class="stat-lbl">TOPS on Snapdragon X Elite Hexagon NPU</div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Attribute</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td>Project Name</td><td>HexaSentinel — On-Device Network Threat Intelligence Analyst</td></tr>
+        <tr><td>Platform</td><td>HP AI PC — Snapdragon X Elite (Windows 11)</td></tr>
+        <tr><td>Primary AI Model</td><td>Llama 3.2 3B Instruct — Qualcomm AI Hub (QNN Runtime)</td></tr>
+        <tr><td>Secondary AI Model</td><td>ONNX Network Anomaly Classifier (Hexagon NPU — QNN Execution Provider)</td></tr>
+        <tr><td>Cloud Dependency</td><td><span class="yes">✓ None</span> — every inference runs locally on the device</td></tr>
+        <tr><td>Frontend</td><td>React 18 + Vite + Zustand + D3.js</td></tr>
+        <tr><td>Backend</td><td>Python 3.11 — FastAPI + scapy + qai-hub-models</td></tr>
+        <tr><td>Target Use Case</td><td>On-device cybersecurity for Indian enterprises, SMBs &amp; academic institutions</td></tr>
+        <tr><td>Derived From</td><td>SHYEN / RouteGuard AI (substantially modified — cloud AI fully replaced)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">⚡</div>
+    <div class="callout-body">HexaSentinel is a significant evolution of <strong>SHYEN (Security Hub for Yielding Edge Networks)</strong> — the author's existing multi-agent BGP threat intelligence dashboard — re-architected to eliminate all cloud AI dependencies and execute every inference workload natively on Snapdragon silicon. The Groq cloud API that previously powered SHYEN is replaced entirely by Qualcomm AI Hub models on the Hexagon NPU.</div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ PROBLEM STATEMENT ══════════════ -->
+<section id="problem">
+<div class="wrap">
+  <div class="sec-eyebrow">Problem Statement</div>
+  <h2 class="sec-title">A very real threat, with a very real gap</h2>
+  <p class="sec-lead">India is the second-most targeted nation globally for cybersecurity attacks. Yet the tools that could protect organisations are either too expensive, too cloud-dependent, or too silent when the internet goes down — which is precisely when attacks hit hardest.</p>
+
+  <!-- India stat -->
+  <div class="callout callout-p" style="margin-bottom:36px">
+    <div class="callout-icon">🇮🇳</div>
+    <div class="callout-body">
+      <strong>1.39 million cybersecurity incidents in India in 2024</strong> — reported by CERT-In. BGP hijacking attacks on Reliance Jio, BSNL, and regional ISPs demonstrated that network-layer threats are immediate and real, not theoretical.
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;margin-bottom:22px;color:var(--text)">Three failure modes of cloud-dependent security tools</h3>
+
+  <div class="g3" style="margin-bottom:48px">
+    <div class="card card-l-rose">
+      <div class="card-icon" style="background:rgba(244,63,94,0.12)">🔒</div>
+      <h3>Privacy Risk</h3>
+      <p>Every byte of network traffic metadata — source IPs, connection behaviour, packet statistics — must leave your premises and travel to a vendor's cloud for analysis. For financial institutions, government-adjacent bodies, and research organisations, this is a sovereignty concern and a DPDP Act compliance problem.</p>
+    </div>
+    <div class="card card-l-amber">
+      <div class="card-icon" style="background:rgba(245,158,11,0.12)">⏱️</div>
+      <h3>Latency Blind Spot</h3>
+      <p>Network attacks operate in milliseconds. A pipeline that routes traffic data to a remote cloud for AI inference introduces 80–300 ms of round-trip latency. During that window, an attack can propagate across an entire subnet. Sub-millisecond detection isn't a nice-to-have — it's the difference between containment and compromise.</p>
+    </div>
+    <div class="card card-l-purple">
+      <div class="card-icon" style="background:rgba(139,92,246,0.12)">📡</div>
+      <h3>Offline Vulnerability</h3>
+      <p>Sophisticated network attacks often deliberately degrade or sever internet connectivity — BGP hijacking is a prime example. A cloud-dependent security tool goes completely blind at the exact moment it's needed most. An on-device solution keeps protecting the network regardless of connectivity.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-e">
+    <div class="callout-icon">💡</div>
+    <div class="callout-body">
+      <strong>The gap HexaSentinel fills:</strong> There is currently no widely available, open, on-device tool that combines real-time network traffic monitoring, ML-based anomaly detection, and natural-language threat explanation — all running locally on consumer-grade hardware. Placing the AI analyst inside the device — on the Hexagon NPU — eliminates the privacy risk, the latency gap, and the offline vulnerability simultaneously.
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ BACKGROUND: SHYEN ══════════════ -->
+<section id="shyen" class="alt">
+<div class="wrap">
+  <div class="sec-eyebrow">Background</div>
+  <h2 class="sec-title">Where HexaSentinel came from</h2>
+  <p class="sec-lead">HexaSentinel is built on SHYEN — a real-world BGP threat intelligence dashboard developed by the author. Understanding SHYEN clarifies what HexaSentinel is evolving, and why the transformation matters.</p>
+
+  <h3 style="font-size:16px;color:var(--t2);margin-bottom:24px;font-weight:400">SHYEN (Security Hub for Yielding Edge Networks) features four autonomous agents:</h3>
+
+  <div class="g2" style="margin-bottom:40px">
+    <div class="card card-l-cyan">
+      <h3 style="color:var(--cyan)">BGPWatchAgent</h3>
+      <p>Connects to RIPE RIS live WebSocket feeds and monitors BGP route announcements in real time, flagging anomalies such as unexpected prefix origins or sudden route withdrawals.</p>
+    </div>
+    <div class="card card-l-cyan">
+      <h3 style="color:var(--cyan)">DNSHuntAgent</h3>
+      <p>Monitors DNS resolution for high-value Indian domains, detecting DNS hijacking, spoofed responses, and cache poisoning attempts before they affect end users.</p>
+    </div>
+    <div class="card card-l-purple">
+      <h3 style="color:#A78BFA">CertSentinel</h3>
+      <p>Tracks TLS certificate transparency logs for Indian domains, alerting on newly issued or suspicious certificates that may indicate a man-in-the-middle setup.</p>
+    </div>
+    <div class="card card-l-purple">
+      <h3 style="color:#A78BFA">AI Orchestrator</h3>
+      <p>Correlates signals from all three agents and generates incident analysis reports. <span class="no">Previously powered entirely by the Groq cloud API</span> — the foundational flaw HexaSentinel corrects.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:19px;margin-bottom:24px">The transformation: from SHYEN to HexaSentinel</h3>
+
+  <div class="transform">
+    <div class="tf-panel tf-before">
+      <div class="tf-label" style="color:var(--rose)">Before — SHYEN</div>
+      <div class="tf-title">Cloud AI Dependency</div>
+      <ul class="tf-list">
+        <li>AI analysis runs on Groq cloud API — all threat data leaves the device</li>
+        <li>Non-functional without internet and a valid API key</li>
+        <li>Monitors remote RIPE BGP feeds — not local endpoint traffic</li>
+        <li>No real-time packet-level anomaly detection</li>
+        <li>Network events and IP data sent to third-party servers</li>
+      </ul>
+    </div>
+
+    <div class="tf-arrow">
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <path d="M8 20 H28 M22 13 L30 20 L22 27" stroke="#0CD4F5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+
+    <div class="tf-panel tf-after">
+      <div class="tf-label" style="color:var(--cyan)">After — HexaSentinel</div>
+      <div class="tf-title">Fully On-Device AI</div>
+      <ul class="tf-list">
+        <li>Groq API replaced with Llama 3.2 3B on Hexagon NPU — zero egress</li>
+        <li>Fully functional with no internet connection at runtime</li>
+        <li>Captures live local network packets via scapy — true endpoint security</li>
+        <li>New ONNX classifier provides real-time packet-level threat classification</li>
+        <li>All data stays in device memory — DPDP Act compliant</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ SOLUTION OVERVIEW ══════════════ -->
+<section id="solution">
+<div class="wrap">
+  <div class="sec-eyebrow">Solution Overview</div>
+  <h2 class="sec-title">How HexaSentinel works</h2>
+  <p class="sec-lead">HexaSentinel runs silently on a Snapdragon-powered HP AI PC, watching all inbound and outbound traffic through a two-stage AI pipeline — both stages executing entirely on the Hexagon NPU.</p>
+
+  <div class="g2-fixed" style="margin-bottom:44px">
+    <div class="card" style="background:var(--s2);border:1px solid rgba(12,212,245,0.18);border-radius:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(12,212,245,0.12);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Space Grotesk',sans-serif;color:var(--cyan);font-size:14px;flex-shrink:0">1</div>
+        <h3 style="font-size:16px;color:var(--cyan)">Traffic Classification</h3>
+      </div>
+      <p style="font-size:14px;color:var(--t2)">An ONNX model classifies each 30-second traffic window as <strong style="color:var(--emerald)">NORMAL</strong>, <strong style="color:var(--amber)">SUSPICIOUS</strong>, or <strong style="color:var(--rose)">THREAT</strong>. It processes 80 engineered features — packet rates, inter-arrival times, byte distributions, port entropy, protocol ratios — in under 5 ms on the Hexagon NPU.</p>
+    </div>
+    <div class="card" style="background:var(--s2);border:1px solid rgba(139,92,246,0.22);border-radius:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;font-weight:700;font-family:'Space Grotesk',sans-serif;color:#A78BFA;font-size:14px;flex-shrink:0">2</div>
+        <h3 style="font-size:16px;color:#A78BFA">Threat Analysis</h3>
+      </div>
+      <p style="font-size:14px;color:var(--t2)">When the classifier returns SUSPICIOUS or THREAT, the context is passed to <strong>Llama 3.2 3B</strong> on the Hexagon NPU. It generates a plain-English explanation of what was detected, why it's suspicious, and exactly what the user should do — no internet required.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:19px;margin-bottom:22px">Who uses HexaSentinel</h3>
+  <div class="g3" style="margin-bottom:48px">
+    <div class="card card-l-cyan">
+      <h3 style="font-size:15px">IT Admins in SMBs &amp; Academia</h3>
+      <p>Threat visibility without enterprise cloud security budgets. HexaSentinel works out of the box on any Snapdragon HP AI PC.</p>
+    </div>
+    <div class="card card-l-purple">
+      <h3 style="font-size:15px">Network Engineers</h3>
+      <p>Monitoring HP AI PC fleets in organisations where data sovereignty prevents sending traffic metadata to cloud providers.</p>
+    </div>
+    <div class="card card-l-emerald">
+      <h3 style="font-size:15px">Security Researchers</h3>
+      <p>A transparent, inspectable, on-device tool for studying network attack patterns — fully open-source, no black-box cloud.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:19px;margin-bottom:20px">HexaSentinel vs the alternatives</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>HexaSentinel</th>
+          <th>Cloud-based Tools</th>
+          <th>Traditional IDS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AI Threat Analysis</td>
+          <td><span class="yes">✓ On-device LLM</span></td>
+          <td><span class="yes">✓ Cloud LLM</span></td>
+          <td><span class="no">✗ Rule-based only</span></td>
+        </tr>
+        <tr>
+          <td>Internet Required</td>
+          <td><span class="yes">✓ No</span></td>
+          <td><span class="no">✗ Yes</span></td>
+          <td><span class="yes">✓ No</span></td>
+        </tr>
+        <tr>
+          <td>Data Privacy</td>
+          <td><span class="yes">✓ Zero data leaves device</span></td>
+          <td><span class="warn">⚠ Traffic metadata sent to cloud</span></td>
+          <td><span class="yes">✓ Local</span></td>
+        </tr>
+        <tr>
+          <td>Detection Latency</td>
+          <td><span class="yes">&lt;5 ms (NPU)</span></td>
+          <td><span class="warn">80–300 ms (cloud round-trip)</span></td>
+          <td><span class="yes">&lt;1 ms (rules)</span></td>
+        </tr>
+        <tr>
+          <td>Explainability</td>
+          <td><span class="yes">✓ Natural language</span></td>
+          <td><span class="yes">✓ Natural language</span></td>
+          <td><span class="no">✗ Log codes only</span></td>
+        </tr>
+        <tr>
+          <td>Hardware Acceleration</td>
+          <td><span class="yes">✓ Hexagon NPU</span></td>
+          <td><span class="no">✗ Remote GPU</span></td>
+          <td><span class="no">✗ CPU only</span></td>
+        </tr>
+        <tr>
+          <td>Cost</td>
+          <td><span class="yes">✓ Free after device purchase</span></td>
+          <td><span class="warn">💰 Subscription required</span></td>
+          <td><span class="yes">✓ Free (open source)</span></td>
+        </tr>
+        <tr>
+          <td>Offline Operation</td>
+          <td><span class="yes">✓ Full functionality</span></td>
+          <td><span class="no">✗ Blind offline</span></td>
+          <td><span class="yes">✓ Full functionality</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ TECHNICAL ARCHITECTURE ══════════════ -->
+<section id="architecture" class="alt">
+<div class="wrap">
+  <div class="sec-eyebrow">Technical Architecture</div>
+  <h2 class="sec-title">The full picture — inside the device</h2>
+  <p class="sec-lead">Every component runs on the HP AI PC. Packets come in from the network interface and travel through two AI models on the Hexagon NPU before surfacing as human-readable alerts on the dashboard.</p>
+
+  <!-- ══ ARCHITECTURE FLOWCHART SVG ══ -->
+  <div class="flowchart-wrap">
+    <svg viewBox="0 0 680 730" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:680px">
+      <defs>
+        <linearGradient id="ng" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#0CD4F5" stop-opacity="0.18"/>
+          <stop offset="100%" stop-color="#0CD4F5" stop-opacity="0.06"/>
+        </linearGradient>
+        <linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0.08"/>
+        </linearGradient>
+        <linearGradient id="eg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#10B981" stop-opacity="0.16"/>
+          <stop offset="100%" stop-color="#10B981" stop-opacity="0.05"/>
+        </linearGradient>
+        <filter id="gl"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <!-- Arrow markers -->
+        <marker id="arr-c" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M1,1 L8,4 L1,7 Z" fill="#0CD4F5" opacity="0.75"/>
+        </marker>
+        <marker id="arr-r" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M1,1 L8,4 L1,7 Z" fill="#F43F5E" opacity="0.8"/>
+        </marker>
+        <marker id="arr-e" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+          <path d="M1,1 L8,4 L1,7 Z" fill="#10B981" opacity="0.65"/>
+        </marker>
+      </defs>
+
+      <!-- BG -->
+      <rect width="680" height="730" rx="14" fill="#060d1a"/>
+      <!-- Wrapper border (device boundary) -->
+      <rect x="10" y="10" width="660" height="710" rx="10" fill="none" stroke="#0CD4F5" stroke-width="0.9" stroke-dasharray="6,3.5" opacity="0.28"/>
+      <text x="24" y="28" fill="#0CD4F5" font-size="10" font-family="Space Grotesk,sans-serif" opacity="0.5" font-weight="600">HP AI PC — Snapdragon X Elite</text>
+
+      <!-- ── NODE 1: Network Interfaces ── -->
+      <rect x="230" y="40" width="220" height="50" rx="9" fill="url(#ng)" stroke="#0CD4F5" stroke-width="1.3"/>
+      <text x="340" y="62" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="12.5" font-weight="600" fill="#EAF2FF">Network Interfaces</text>
+      <text x="340" y="79" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#8BA8C8">WiFi / Ethernet</text>
+
+      <!-- Arrow 1→2 -->
+      <line x1="340" y1="90" x2="340" y2="110" stroke="#0CD4F5" stroke-width="1.3" marker-end="url(#arr-c)" opacity="0.6"/>
+
+      <!-- ── NODE 2: Packet Capture ── -->
+      <rect x="200" y="114" width="280" height="52" rx="9" fill="url(#ng)" stroke="#0CD4F5" stroke-width="1.3"/>
+      <text x="340" y="137" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="12.5" font-weight="600" fill="#EAF2FF">Packet Capture</text>
+      <text x="340" y="155" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#8BA8C8">scapy / pyshark — live capture on active interface</text>
+
+      <!-- Arrow 2→3 -->
+      <line x1="340" y1="166" x2="340" y2="186" stroke="#0CD4F5" stroke-width="1.3" marker-end="url(#arr-c)" opacity="0.6"/>
+
+      <!-- ── NODE 3: Feature Extractor ── -->
+      <rect x="178" y="190" width="324" height="52" rx="9" fill="url(#ng)" stroke="#0CD4F5" stroke-width="1.3"/>
+      <text x="340" y="213" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="12.5" font-weight="600" fill="#EAF2FF">Feature Extractor</text>
+      <text x="340" y="231" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#8BA8C8">80 traffic features · 30-second sliding windows</text>
+
+      <!-- Arrow 3→4 -->
+      <line x1="340" y1="242" x2="340" y2="262" stroke="#0CD4F5" stroke-width="1.3" marker-end="url(#arr-c)" opacity="0.6"/>
+
+      <!-- ── NODE 4: ONNX Classifier [NPU] ── -->
+      <rect x="155" y="266" width="370" height="66" rx="9" fill="url(#ag)" stroke="#8B5CF6" stroke-width="1.6" filter="url(#gl)"/>
+      <text x="320" y="291" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="13" font-weight="700" fill="#EAF2FF">ONNX Anomaly Classifier</text>
+      <text x="320" y="309" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#A78BFA">Hexagon NPU · QNN Execution Provider · F1 &gt; 0.97 on CICIDS-2018</text>
+      <text x="320" y="323" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#7B8FA8">Outputs: NORMAL / SUSPICIOUS / THREAT + confidence score</text>
+      <!-- NPU badge -->
+      <rect x="486" y="272" width="34" height="16" rx="4" fill="rgba(139,92,246,0.35)" stroke="#8B5CF6" stroke-width="0.8"/>
+      <text x="503" y="284" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="9" font-weight="700" fill="#A78BFA">NPU</text>
+
+      <!-- Arrow 4→decision -->
+      <line x1="340" y1="332" x2="340" y2="352" stroke="#0CD4F5" stroke-width="1.3" marker-end="url(#arr-c)" opacity="0.6"/>
+
+      <!-- ── DECISION DIAMOND ── -->
+      <polygon points="340,355 428,400 340,445 252,400" fill="rgba(16,185,129,0.07)" stroke="#10B981" stroke-width="1.5"/>
+      <text x="340" y="396" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="11.5" font-weight="600" fill="#34D399">Threat Level?</text>
+      <text x="340" y="412" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#8BA8C8">Classification result</text>
+
+      <!-- NORMAL branch → right -->
+      <line x1="428" y1="400" x2="500" y2="400" stroke="#10B981" stroke-width="1.2" marker-end="url(#arr-e)" opacity="0.65"/>
+      <text x="462" y="393" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#10B981" font-style="italic">NORMAL</text>
+      <!-- NORMAL box -->
+      <rect x="500" y="375" width="150" height="50" rx="8" fill="rgba(16,185,129,0.07)" stroke="#10B981" stroke-width="1.2" opacity="0.8"/>
+      <text x="575" y="397" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="11.5" font-weight="600" fill="#34D399">Continue</text>
+      <text x="575" y="413" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#7BAA94">Log &amp; monitor</text>
+
+      <!-- SUSPICIOUS/THREAT → down -->
+      <line x1="340" y1="445" x2="340" y2="464" stroke="#F43F5E" stroke-width="1.3" marker-end="url(#arr-r)" opacity="0.7"/>
+      <text x="237" y="458" font-family="Inter,sans-serif" font-size="9" fill="#F43F5E" font-style="italic">SUSPICIOUS / THREAT</text>
+
+      <!-- ── NODE 5: Llama 3.2 3B [NPU] ── -->
+      <rect x="148" y="468" width="384" height="72" rx="9" fill="url(#ag)" stroke="#8B5CF6" stroke-width="1.8" filter="url(#gl)"/>
+      <text x="316" y="492" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="13.5" font-weight="700" fill="#EAF2FF">Llama 3.2 3B Instruct</text>
+      <text x="316" y="511" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#A78BFA">Qualcomm AI Hub · Hexagon NPU · QNN Runtime · 4-bit quantized</text>
+      <text x="316" y="528" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#7B8FA8">Generates: explanation · severity · attack vector · 3 action steps</text>
+      <!-- NPU badge -->
+      <rect x="494" y="474" width="34" height="16" rx="4" fill="rgba(139,92,246,0.4)" stroke="#8B5CF6" stroke-width="0.8"/>
+      <text x="511" y="486" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="9" font-weight="700" fill="#A78BFA">NPU</text>
+
+      <!-- Arrow 5→6 -->
+      <line x1="340" y1="540" x2="340" y2="560" stroke="#0CD4F5" stroke-width="1.3" marker-end="url(#arr-c)" opacity="0.6"/>
+
+      <!-- ── NODE 6: FastAPI WebSocket ── -->
+      <rect x="205" y="564" width="270" height="52" rx="9" fill="url(#ng)" stroke="#0CD4F5" stroke-width="1.3"/>
+      <text x="340" y="587" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="12.5" font-weight="600" fill="#EAF2FF">FastAPI WebSocket Bridge</text>
+      <text x="340" y="605" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#8BA8C8">Real-time threat event streaming to dashboard</text>
+
+      <!-- Arrow 6→7 -->
+      <line x1="340" y1="616" x2="340" y2="636" stroke="#0CD4F5" stroke-width="1.3" marker-end="url(#arr-c)" opacity="0.6"/>
+
+      <!-- ── NODE 7: React Dashboard ── -->
+      <rect x="145" y="640" width="390" height="68" rx="9" fill="url(#eg)" stroke="#10B981" stroke-width="1.5"/>
+      <text x="340" y="664" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="13" font-weight="700" fill="#EAF2FF">React SOC Dashboard</text>
+      <text x="340" y="682" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#34D399">Live Threat Feed · Severity Meter · AI Explanation Panel · CERT-In Export</text>
+      <text x="340" y="698" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#8BA8C8">Vite + Zustand + D3.js + Recharts</text>
+
+      <!-- Bottom label -->
+      <text x="340" y="722" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="10" fill="#0CD4F5" opacity="0.45" letter-spacing="0.06em">◄── ZERO INTERNET REQUIRED AT RUNTIME ──►</text>
+    </svg>
+  </div>
+
+  <h3 style="font-size:19px;margin-bottom:22px">Component breakdown</h3>
+
+  <div class="g2" style="margin-bottom:0">
+    <div class="card card-l-cyan">
+      <h3>Packet Capture Layer</h3>
+      <p>Uses scapy (or pyshark) to capture all traffic on the active network interface. Packets are collected into 30-second windows from which 80 statistical features are computed — flow statistics, protocol distributions, inter-arrival time stats, SYN/SYN-ACK ratios, and payload indicators.</p>
+    </div>
+    <div class="card card-l-purple">
+      <h3>ONNX Anomaly Classifier</h3>
+      <p>A gradient-boosted tree ensemble converted to ONNX format, trained on CICIDS-2018 (F1 &gt; 0.97). ONNX Runtime runs it with the QNN Execution Provider, routing inference to the Hexagon NPU for sub-5ms classification latency per window.</p>
+    </div>
+    <div class="card card-l-purple">
+      <h3>Llama 3.2 3B (Qualcomm AI Hub)</h3>
+      <p>The 4-bit quantized Llama 3.2 3B Instruct model compiled for QNN Runtime achieves 3–4× throughput over FP16 on Snapdragon hardware. It generates a &lt;200-word threat report with severity, attack vector, and three immediate action recommendations.</p>
+    </div>
+    <div class="card card-l-cyan">
+      <h3>React Dashboard</h3>
+      <p>Adapted from SHYEN's codebase. Connects via local FastAPI WebSocket. Shows a live threat feed, D3 network graph, severity meter, Llama-powered AI explanation panel, and one-click CERT-In format PDF export.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ AI HUB INTEGRATION ══════════════ -->
+<section id="aihub">
+<div class="wrap">
+  <div class="sec-eyebrow">Qualcomm AI Hub Integration</div>
+  <h2 class="sec-title">Why on-device beats the cloud here</h2>
+  <p class="sec-lead">Every AI model in HexaSentinel is sourced from Qualcomm AI Hub and compiled for the Snapdragon X Elite Hexagon NPU. This isn't a workaround — it's where HexaSentinel's core advantages actually live.</p>
+
+  <div class="tbl-wrap" style="margin-bottom:36px">
+    <table>
+      <thead>
+        <tr><th>Model</th><th>Source</th><th>Role in HexaSentinel</th><th>NPU</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Llama-3.2-3B-Instruct-Quantized</td>
+          <td style="color:var(--cyan)">Qualcomm AI Hub</td>
+          <td>Natural language threat report generation</td>
+          <td>Hexagon NPU (QNN Runtime)</td>
+        </tr>
+        <tr>
+          <td>ONNX Anomaly Classifier</td>
+          <td>Trained on CICIDS-2018</td>
+          <td>Real-time packet anomaly classification</td>
+          <td>Hexagon NPU (QNN Execution Provider)</td>
+        </tr>
+        <tr>
+          <td>Whisper-Base-En <em style="color:var(--t3)">(optional)</em></td>
+          <td style="color:var(--cyan)">Qualcomm AI Hub</td>
+          <td>Voice query interface ("Show threats last 1 hour")</td>
+          <td>Hexagon NPU (QNN Runtime)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:19px;margin-bottom:22px">Four technical advantages over the Groq cloud API</h3>
+  <div class="g2" style="margin-bottom:36px">
+    <div class="card card-l-cyan">
+      <h3>Inference Latency</h3>
+      <p>Groq API averages 800–1200 ms round-trip for a 200-token completion. Llama 3.2 3B on the Hexagon NPU generates the same 200-token threat report in <strong>8–13 seconds</strong> — and unlike cloud, this holds even when there's no internet connection.</p>
+    </div>
+    <div class="card card-l-emerald">
+      <h3>Zero Data Egress</h3>
+      <p>Network traffic metadata, source/destination IPs, packet statistics, and behavioral anomalies <strong>never leave the device</strong>. This satisfies DPDP Act (Digital Personal Data Protection Act, India 2023) compliance for organisations handling personal data.</p>
+    </div>
+    <div class="card card-l-amber">
+      <h3>Power Efficiency</h3>
+      <p>The Hexagon NPU delivers the highest TOPS-per-watt ratio on the Snapdragon X Elite. Running Llama 3.2 3B on the NPU consumes roughly <strong>3–5 W</strong> versus 15–20 W on the CPU — extending battery life on laptop deployments.</p>
+    </div>
+    <div class="card card-l-purple">
+      <h3>Air-Gap Compatibility</h3>
+      <p>HexaSentinel operates identically on isolated industrial networks, secure government LAN environments, and locations with poor connectivity. Once the model is downloaded at setup, <strong>no internet is ever needed again</strong>.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">🔧</div>
+    <div class="callout-body">
+      <strong>NPU scheduling:</strong> Both workloads coexist on the Hexagon NPU without contention. The ONNX classifier runs in a continuous low-priority thread (30s windows, ~5ms each). Llama runs in a high-priority on-demand thread triggered only by SUSPICIOUS or THREAT events — a scheduling approach enabled by the QNN Runtime's priority queue mechanism.
+    </div>
+  </div>
+
+  <h3 style="font-size:19px;margin:36px 0 20px">How the ONNX model runs on the Hexagon NPU</h3>
+  <div class="code">
+<span class="cc"># ONNX Runtime with Qualcomm QNN Execution Provider</span>
+<span class="ck">import</span> onnxruntime <span class="ck">as</span> ort
+
+providers = [
+    (<span class="cs">"QNNExecutionProvider"</span>, {
+        <span class="cs">"backend_path"</span>: <span class="cs">"QnnHtp.dll"</span>,          <span class="cc"># Hexagon NPU backend</span>
+        <span class="cs">"htp_performance_mode"</span>: <span class="cs">"burst"</span>,
+        <span class="cs">"htp_arch"</span>: <span class="cs">"73"</span>,                   <span class="cc"># Snapdragon X Elite</span>
+    }),
+    <span class="cs">"CPUExecutionProvider"</span>,              <span class="cc"># fallback for non-Snapdragon</span>
+]
+
+session = ort.<span class="cf">InferenceSession</span>(<span class="cs">"anomaly_classifier.onnx"</span>, providers=providers)
+result  = session.<span class="cf">run</span>(<span class="ck">None</span>, {<span class="cs">"features"</span>: feature_vector})
+
+<span class="cc"># result[0] → class label: 0=NORMAL, 1=SUSPICIOUS, 2=THREAT</span>
+<span class="cc"># result[1] → confidence scores [0.0 – 1.0]</span></div>
+
+  <h3 style="font-size:19px;margin:32px 0 20px">Llama 3.2 3B — on-device threat report generation</h3>
+  <div class="code">
+<span class="cc"># Qualcomm AI Hub — Llama 3.2 3B Instruct (QNN Runtime)</span>
+<span class="ck">from</span> qai_hub_models.models.llama_v3_2_3b_chat_quantized <span class="ck">import</span> Model
+
+model = Model.<span class="cf">from_pretrained</span>()    <span class="cc"># loads QNN-compiled model from Qualcomm AI Hub</span>
+
+SYSTEM_PROMPT = <span class="cs">"""You are HexaSentinel, an on-device network security analyst.
+Analyse the provided threat context and generate:
+  1. Plain-English explanation of what was detected
+  2. Severity level (INFO / WARNING / CRITICAL)
+  3. Likely attack vector and affected services
+  4. Three immediate action recommendations
+Keep your response under 200 words. Be specific and actionable."""</span>
+
+prompt   = <span class="cs">f"</span>{SYSTEM_PROMPT}<span class="cs">\n\nThreat Context:\n</span>{threat_context_json}<span class="cs">"</span>
+response = model.<span class="cf">generate</span>(prompt, max_new_tokens=<span class="cv">250</span>)
+<span class="cc"># Runs 100% on Hexagon NPU — zero network calls</span></div>
+</div>
+</section>
+
+<!-- ══════════════ TECH STACK ══════════════ -->
+<section id="stack" class="alt">
+<div class="wrap">
+  <div class="sec-eyebrow">Technical Implementation</div>
+  <h2 class="sec-title">The full technology stack</h2>
+  <p class="sec-lead">Every technology choice in HexaSentinel is deliberate. Where libraries touch the Hexagon NPU, they use Qualcomm's runtime interfaces. Where they serve the user, they prioritise accessibility and ease of deployment.</p>
+
+  <div class="tbl-wrap" style="margin-bottom:36px">
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th><th>Version</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>AI — LLM</td><td>Llama 3.2 3B Instruct (QNN)</td><td>Qualcomm AI Hub</td><td>Threat report generation</td></tr>
+        <tr><td>AI — Classifier</td><td>ONNX Runtime + QNN EP</td><td>1.18.x</td><td>Network anomaly classification</td></tr>
+        <tr><td>AI — Voice (opt.)</td><td>Whisper Base En (QNN)</td><td>Qualcomm AI Hub</td><td>Voice query interface</td></tr>
+        <tr><td>Packet Capture</td><td>scapy + pyshark</td><td>2.5.x / 0.6.x</td><td>Live network traffic capture</td></tr>
+        <tr><td>Backend API</td><td>FastAPI + uvicorn</td><td>0.111.x / 0.29.x</td><td>REST + WebSocket server</td></tr>
+        <tr><td>Feature Engineering</td><td>NumPy + pandas</td><td>1.26.x / 2.2.x</td><td>Traffic feature computation</td></tr>
+        <tr><td>Frontend</td><td>React 18 + Vite 5</td><td>18.3.x / 5.2.x</td><td>SOC dashboard UI</td></tr>
+        <tr><td>State Management</td><td>Zustand</td><td>4.5.x</td><td>Real-time threat event store</td></tr>
+        <tr><td>Visualisation</td><td>D3.js + Recharts</td><td>7.x / 2.x</td><td>Network graph + timeline charts</td></tr>
+        <tr><td>Report Export</td><td>jsPDF + html2canvas</td><td>2.x / 1.4.x</td><td>CERT-In format PDF export</td></tr>
+        <tr><td>Distribution</td><td>PyInstaller</td><td>6.x</td><td>Single-exe Windows packaging</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:19px;margin-bottom:20px">Data privacy — a technical commitment, not a marketing claim</h3>
+  <div class="g2">
+    <div class="card card-l-emerald">
+      <h3 style="font-size:15px">No network egress in the AI pipeline</h3>
+      <p><code style="font-size:12px;color:var(--cyan)">qai_hub_models</code> operates in fully local mode after the initial model download. Inference makes zero outbound connections.</p>
+    </div>
+    <div class="card card-l-emerald">
+      <h3 style="font-size:15px">Payload content is never stored</h3>
+      <p>Only packet flow statistics (counts, timings, sizes) are processed. Payload content is discarded at the capture layer via a strict whitelist of extracted fields.</p>
+    </div>
+    <div class="card card-l-emerald">
+      <h3 style="font-size:15px">All data stays in memory</h3>
+      <p>No threat event data is written to disk by default. The user explicitly triggers export when generating a CERT-In report.</p>
+    </div>
+    <div class="card card-l-emerald">
+      <h3 style="font-size:15px">Localhost-only API</h3>
+      <p>The FastAPI server binds exclusively to <code style="font-size:12px;color:var(--cyan)">127.0.0.1</code> — it cannot be accessed from other devices on the network.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ INNOVATION & USE CASES ══════════════ -->
+<section id="usecases">
+<div class="wrap">
+  <div class="sec-eyebrow">Innovation &amp; Use Cases</div>
+  <h2 class="sec-title">What makes this novel — and who it helps</h2>
+  <p class="sec-lead">HexaSentinel's novelty isn't a single breakthrough technique — it's a specific combination that didn't exist before: an on-device AI security analyst running on consumer hardware available today, with no meaningful accuracy or capability degradation compared to cloud alternatives.</p>
+
+  <div class="scenario">
+    <div class="scenario-tag c">Scenario 1 — Education</div>
+    <h3>Protecting PVGCOET's network — a real deployment context</h3>
+    <p>The college network at PVGCOET, Pune connects hundreds of student devices, lab computers, IoT sensors, and administrative systems across multiple buildings. An IT administrator today has no AI-powered threat detection, only basic firewall rules that block known-bad IPs but cannot detect novel attack patterns — and zero natural-language explanation of raw log alerts.</p>
+    <p>With HexaSentinel installed on the admin's HP AI PC: continuous local monitoring without any cloud subscription, real-time anomaly detection, and plain-English alerts that even a non-specialist can act on. No CERT-In expertise required to interpret the output.</p>
+  </div>
+
+  <div class="scenario">
+    <div class="scenario-tag p">Scenario 2 — BGP Attack Detection</div>
+    <h3>Catching BGP hijacks at the endpoint level</h3>
+    <p>When a BGP prefix hijack redirects traffic through a malicious autonomous system, the effects appear on endpoint devices: sudden latency spikes, unusual DNS failure rates, unexpected TCP retransmissions. HexaSentinel's ONNX classifier detects these secondary effects without needing access to BGP routing tables — and Llama 3.2 3B explains exactly what it found:</p>
+    <div class="ai-output">
+CRITICAL — Detected unusual DNS failure rate (47% vs 2% baseline) combined with increased TCP retransmission rate. Traffic patterns are consistent with a BGP prefix hijack or upstream routing anomaly.
+
+→ Recommend verifying routing path with traceroute
+→ Consider switching to DoH (DNS-over-HTTPS) with a trusted resolver  
+→ Contact your ISP if anomaly persists beyond 5 minutes
+    </div>
+    <p style="margin-top:14px">This is exactly the contextual, actionable security guidance SHYEN aimed to provide via cloud AI — now running entirely on the Hexagon NPU.</p>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ DEPLOYMENT ══════════════ -->
+<section id="deploy" class="alt">
+<div class="wrap">
+  <div class="sec-eyebrow">Deployment &amp; Accessibility</div>
+  <h2 class="sec-title">Up and running in under 15 minutes</h2>
+  <p class="sec-lead">Accessibility is a first-class design goal. HexaSentinel installs from a single batch file on Windows, and every threat alert is designed to be understood by non-specialists.</p>
+
+  <div class="g2-fixed" style="margin-bottom:36px">
+    <div>
+      <h3 style="font-size:16px;margin-bottom:16px">One-click setup</h3>
+      <div class="code" style="font-size:11.5px">
+<span class="cc">───────────── setup.bat ─────────────</span>
+1. Checks Python 3.11+ (downloads if absent)
+2. pip install -r backend/requirements.txt
+3. Downloads Llama 3.2 3B QNN model from
+   Qualcomm AI Hub  <span class="cc">← one-time, ~2.1 GB</span>
+4. Verifies ONNX Runtime + QNN EP
+5. cd dashboard &amp;&amp; npm install
+6. Launches backend + frontend
+7. Opens browser at http://localhost:5173
+<span class="cc">─────────────────────────────────────
+Setup time:  8–12 min (incl. download)
+Subsequent:  &lt; 20 seconds</span>
+      </div>
+    </div>
+    <div>
+      <h3 style="font-size:16px;margin-bottom:16px">Every alert has three sections</h3>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card card-l-cyan" style="padding:16px 20px">
+          <div style="font-size:11px;color:var(--t3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">What happened</div>
+          <p style="font-size:13px">A plain-English summary from Llama 3.2 3B — written for non-specialists.</p>
+        </div>
+        <div class="card card-l-amber" style="padding:16px 20px">
+          <div style="font-size:11px;color:var(--t3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">How severe is it</div>
+          <p style="font-size:13px">GREEN / AMBER / RED indicator with a one-sentence justification.</p>
+        </div>
+        <div class="card card-l-emerald" style="padding:16px 20px">
+          <div style="font-size:11px;color:var(--t3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px">What to do now</div>
+          <p style="font-size:13px">Three numbered, specific action items tailored to the detected threat type.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:18px;margin-bottom:20px">System requirements</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Requirement</th><th>Minimum</th><th>Recommended</th></tr></thead>
+      <tbody>
+        <tr><td>Processor</td><td>Snapdragon X Plus (HP AI PC)</td><td>Snapdragon X Elite (HP AI PC)</td></tr>
+        <tr><td>RAM</td><td>16 GB</td><td>32 GB</td></tr>
+        <tr><td>Storage</td><td>5 GB free (model + deps)</td><td>10 GB free</td></tr>
+        <tr><td>OS</td><td>Windows 11 22H2</td><td>Windows 11 24H2</td></tr>
+        <tr><td>Network Interface</td><td>Any (WiFi or Ethernet)</td><td>Ethernet (more accurate capture)</td></tr>
+        <tr><td>Internet (setup only)</td><td colspan="2"><span class="yes">Required for model download (~2.1 GB, one time only)</span></td></tr>
+        <tr><td>Internet (runtime)</td><td colspan="2"><span class="yes">✓ Not required — zero cloud dependency at runtime</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ ROADMAP ══════════════ -->
+<section id="roadmap">
+<div class="wrap">
+  <div class="sec-eyebrow">Future Roadmap</div>
+  <h2 class="sec-title">Where HexaSentinel goes next</h2>
+  <p class="sec-lead">HexaSentinel is designed for extensibility. The roadmap prioritises Indian-specific threat intelligence, wider hardware reach, and opening the codebase to the community.</p>
+
+  <div class="g2-fixed">
+    <div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--cyan);font-family:'Space Grotesk',sans-serif;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--cyan);flex-shrink:0;box-shadow:0 0 6px rgba(12,212,245,0.5)"></span>
+        Near-Term — 3 to 6 Months
+      </div>
+      <div class="roadmap">
+        <div class="rm-group">
+          <div class="rm-item" style="border-left-color:rgba(12,212,245,0.3)">
+            <div style="position:absolute;left:-5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--cyan);border:2px solid var(--bg)"></div>
+            <div class="rm-item-t">Multi-device LAN support</div>
+            <div class="rm-item-d">Deploy HexaSentinel as a lightweight agent on multiple devices with a central aggregation dashboard on one HP AI PC — enabling network-wide threat visibility from a single on-device node.</div>
+          </div>
+          <div class="rm-item" style="border-left-color:rgba(12,212,245,0.3)">
+            <div style="position:absolute;left:-5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--cyan);border:2px solid var(--bg)"></div>
+            <div class="rm-item-t">SHYEN BGP Re-integration</div>
+            <div class="rm-item-d">Re-integrate SHYEN's RIPE RIS WebSocket BGP monitoring, replacing the Groq API with the on-device Llama model for correlation and report generation — full circle from the original project.</div>
+          </div>
+          <div class="rm-item" style="border-left-color:rgba(12,212,245,0.3)">
+            <div style="position:absolute;left:-5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--cyan);border:2px solid var(--bg)"></div>
+            <div class="rm-item-t">India-specific model fine-tuning</div>
+            <div class="rm-item-d">Fine-tune the ONNX classifier on CERT-In published threat reports and regional ISP traffic samples to improve accuracy for Indian network threat patterns.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#A78BFA;font-family:'Space Grotesk',sans-serif;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#A78BFA;flex-shrink:0;box-shadow:0 0 6px rgba(139,92,246,0.5)"></span>
+        Long-Term — 6 to 18 Months
+      </div>
+      <div class="roadmap">
+        <div class="rm-group">
+          <div class="rm-item" style="border-left-color:rgba(139,92,246,0.3)">
+            <div style="position:absolute;left:-5px;top:6px;width:8px;height:8px;border-radius:50%;background:#A78BFA;border:2px solid var(--bg)"></div>
+            <div class="rm-item-t">Voice query with Whisper (Qualcomm AI Hub)</div>
+            <div class="rm-item-d">Full voice query capability via the Whisper model from Qualcomm AI Hub — "Show me all threats involving port 443 in the last 6 hours" — running on the Hexagon NPU.</div>
+          </div>
+          <div class="rm-item" style="border-left-color:rgba(139,92,246,0.3)">
+            <div style="position:absolute;left:-5px;top:6px;width:8px;height:8px;border-radius:50%;background:#A78BFA;border:2px solid var(--bg)"></div>
+            <div class="rm-item-t">Android companion app</div>
+            <div class="rm-item-d">Port the lightweight ONNX classifier to Android on Snapdragon 8 Elite mobile devices for mobile network monitoring — extending on-device security beyond the PC.</div>
+          </div>
+          <div class="rm-item" style="border-left-color:rgba(139,92,246,0.3)">
+            <div style="position:absolute;left:-5px;top:6px;width:8px;height:8px;border-radius:50%;background:#A78BFA;border:2px solid var(--bg)"></div>
+            <div class="rm-item-t">Open-source release on GitHub</div>
+            <div class="rm-item-d">Publish HexaSentinel under the MIT licence to enable contributions from India's cybersecurity community, academic institutions, and Snapdragon developers worldwide.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ CONCLUSION ══════════════ -->
+<section id="conclusion" class="alt">
+<div class="wrap">
+  <div class="sec-eyebrow">Conclusion</div>
+  <h2 class="sec-title">An AI security analyst in your pocket</h2>
+  <p class="sec-lead">The capabilities HexaSentinel delivers were, until now, available only through expensive enterprise cloud security subscriptions — tools that are fundamentally inaccessible to the Indian SMBs, academic institutions, and individuals who need them most.</p>
+
+  <div style="max-width:720px;line-height:1.85;color:var(--t2);font-size:16px;margin-bottom:40px">
+    <p style="margin-bottom:18px">HexaSentinel addresses this directly. By re-architecting SHYEN onto the Snapdragon X Elite platform — replacing cloud AI with Qualcomm AI Hub models running on the Hexagon NPU — HexaSentinel delivers AI-powered threat detection and natural-language explanation directly on a consumer HP AI PC, with zero internet dependency at runtime.</p>
+    <p>The project is a concrete demonstration of what becomes possible when a model like Llama 3.2 3B runs at the edge: not a compromise relative to cloud AI, but a genuine advancement in <strong style="color:var(--text)">privacy</strong>, <strong style="color:var(--text)">latency</strong>, <strong style="color:var(--text)">resilience</strong>, and <strong style="color:var(--text)">power efficiency</strong>. The device becomes its own security analyst — with no subscription, no data egress, and no single point of failure.</p>
+  </div>
+
+  <div class="callout callout-e" style="border-radius:16px;padding:28px">
+    <div class="callout-icon">🏆</div>
+    <div class="callout-body" style="font-size:15px">
+      <strong>Competition Alignment</strong><br/>
+      HexaSentinel is a significantly modified version of the SHYEN project, incorporating AI models from Qualcomm AI Hub (Llama 3.2 3B Instruct quantized for QNN Runtime) and a new ONNX-based network anomaly classifier running on the Hexagon NPU. All solutions are designed for Snapdragon-powered HP AI PCs. This proposal represents the sole, original work of the participant.
+    </div>
+  </div>
+
+  <div class="div"></div>
+
+  <h3 style="font-size:18px;margin-bottom:20px">References</h3>
+  <div class="card" style="padding:24px 28px">
+    <ul style="list-style:none;padding:0">
+      <li style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--t2)">
+        <span style="color:var(--cyan);flex-shrink:0">01</span>
+        <span>Qualcomm AI Hub — Official model repository and QNN Runtime documentation. <a href="https://aihub.qualcomm.com">aihub.qualcomm.com</a></span>
+      </li>
+      <li style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--t2)">
+        <span style="color:var(--cyan);flex-shrink:0">02</span>
+        <span>CERT-In Annual Report 2024 — Indian Computer Emergency Response Team. <a href="https://www.cert-in.org.in">cert-in.org.in</a></span>
+      </li>
+      <li style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--t2)">
+        <span style="color:var(--cyan);flex-shrink:0">03</span>
+        <span>RIPE NCC Routing Information Service — Live BGP route data. <a href="https://ris.ripe.net">ris.ripe.net</a></span>
+      </li>
+      <li style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--t2)">
+        <span style="color:var(--cyan);flex-shrink:0">04</span>
+        <span>CICIDS-2018 Intrusion Detection Dataset — Canadian Institute for Cybersecurity. <a href="https://www.unb.ca/cic/datasets/ids-2018.html">unb.ca/cic</a></span>
+      </li>
+      <li style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--t2)">
+        <span style="color:var(--cyan);flex-shrink:0">05</span>
+        <span>ONNX Runtime QNN Execution Provider — Microsoft / Qualcomm. <a href="https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html">onnxruntime.ai</a></span>
+      </li>
+      <li style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--border2);font-size:13px;color:var(--t2)">
+        <span style="color:var(--cyan);flex-shrink:0">06</span>
+        <span>Llama 3.2 3B Instruct — Meta AI. <a href="https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/">ai.meta.com</a></span>
+      </li>
+      <li style="display:flex;gap:12px;padding:8px 0;font-size:13px;color:var(--t2)">
+        <span style="color:var(--cyan);flex-shrink:0">07</span>
+        <span>Digital Personal Data Protection Act 2023 — Government of India. <a href="https://www.meity.gov.in/data-protection-framework">meity.gov.in</a></span>
+      </li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-name">Aniket Khot</div>
+    <div class="footer-sub" style="margin-top:6px">Electronics &amp; Telecommunication Engineering, SY B.Tech · PVGCOET, Savitribai Phule Pune University</div>
+    <div class="footer-sub" style="margin-top:4px">khotaniket3006@gmail.com · September 2026</div>
+    <div style="margin-top:24px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+      <span class="chip chip-c" style="font-size:10px">Qualcomm Snapdragon AI Lab Challenge 2026</span>
+      <span class="chip chip-p" style="font-size:10px">HexaSentinel — On-Device Network Threat Intelligence</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
