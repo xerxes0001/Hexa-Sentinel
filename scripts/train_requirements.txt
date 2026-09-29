@@ -1,11 +1,17 @@
-# SnapShield — Training-only dependencies
-# Install with: pip install -r scripts/train_requirements.txt
-# These are NOT needed for runtime on the HP AI PC.
+# SnapShield — Training dependencies
+#
+# These packages are required ONLY while training/exporting the model.
+# They are not required by the React application.
 
-scikit-learn>=1.4.0
-xgboost>=2.0.0
-skl2onnx>=1.16.0
-onnxmltools>=1.12.0
-onnxruntime>=1.18.0
-numpy>=1.26.0
-pandas>=2.2.0
+numpy>=1.26,<3
+pandas>=2.2,<3
+
+scikit-learn>=1.4,<2
+
+xgboost>=2.0,<4
+
+skl2onnx>=1.16
+onnxmltools>=1.12
+onnx>=1.16
+
+onnxruntime>=1.18,<2
