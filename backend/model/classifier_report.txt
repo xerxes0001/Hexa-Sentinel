@@ -1,0 +1,49 @@
+HexaSentinel — ONNX Anomaly Classifier Report
+==============================================
+
+Model: GBDT-80k
+Samples: 80000
+Features: 80
+
+Performance
+-----------
+
+F1 Score: 1.0
+
+Class Performance
+------------------
+
+Normal: 0.0
+SYN:    1.0
+C2:     1.0
+
+Model Purpose
+-------------
+
+The ONNX classifier is used by HexaSentinel to screen
+network traffic using an 80-feature traffic representation.
+
+The classifier operates as the first AI detection stage
+before deeper analysis by the Llama 3.2 3B model.
+
+Runtime
+-------
+
+Model format: ONNX
+Execution: ONNX Runtime
+Preferred hardware: Qualcomm Hexagon NPU
+Execution provider: QNN
+Fallback: CPU
+
+Pipeline
+--------
+
+Packet Capture
+      ↓
+80-Feature Extraction
+      ↓
+ONNX Anomaly Classifier
+      ↓
+NORMAL / SUSPICIOUS / THREAT
+      ↓
+Llama 3.2 3B Analysis
